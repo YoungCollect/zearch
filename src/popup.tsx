@@ -5,7 +5,6 @@ import { storageManager, type ExtensionSettings, type BlockedSite } from "./util
 function IndexPopup() {
   const [settings, setSettings] = useState<ExtensionSettings | null>(null)
   const [newDomain, setNewDomain] = useState("")
-  const [isRegex, setIsRegex] = useState(false)
   const [loading, setLoading] = useState(true)
 
   // 加载设置
@@ -59,12 +58,11 @@ function IndexPopup() {
     if (!newDomain.trim()) return
 
     try {
-      const success = await storageManager.addBlockedSite(newDomain.trim(), isRegex)
+      const success = await storageManager.addBlockedSite(newDomain.trim())
       if (success) {
         setNewDomain("")
-        setIsRegex(false)
       } else {
-        alert(isRegex ? "该正则表达式已存在或无效" : "该域名已存在于屏蔽列表中")
+        alert("该网站已存在于屏蔽列表中")
       }
     } catch (error) {
       console.error('Failed to add domain:', error)
@@ -157,7 +155,7 @@ function IndexPopup() {
               type="text"
               value={newDomain}
               onChange={(e) => setNewDomain(e.target.value)}
-              placeholder={isRegex ? "输入正则表达式 (如: .*\\.example\\.com)" : "输入要屏蔽的域名"}
+              placeholder="输入网站域名 (如: csdn.net, zhihu.com)"
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               onKeyPress={(e) => e.key === 'Enter' && addDomain()}
             />
@@ -168,20 +166,9 @@ function IndexPopup() {
               添加
             </button>
           </div>
-          <label className="flex items-center space-x-2 text-sm">
-            <input
-              type="checkbox"
-              checked={isRegex}
-              onChange={(e) => setIsRegex(e.target.checked)}
-              className="rounded"
-            />
-            <span className="text-gray-600">使用正则表达式</span>
-            {isRegex && (
-              <span className="text-xs text-gray-500">
-                (支持复杂匹配模式)
-              </span>
-            )}
-          </label>
+          <div className="text-xs text-gray-500">
+            💡 自动匹配该域名及其所有子域名 (如: www.csdn.net, blog.csdn.net)
+          </div>
         </div>
       </div>
 
@@ -203,12 +190,12 @@ function IndexPopup() {
               >
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium text-gray-800">{site.domain}</p>
-                    {site.isRegex && (
-                      <span className="px-1.5 py-0.5 bg-purple-100 text-purple-600 text-xs rounded">
-                        正则
-                      </span>
-                    )}
+                    <p className="text-sm font-medium text-gray-800">
+                      {site.description || site.domain}
+                    </p>
+                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-600 text-xs rounded">
+                      智能匹配
+                    </span>
                   </div>
                   <div className="flex items-center space-x-2 text-xs text-gray-500">
                     <span>已屏蔽 {site.blockedCount} 次</span>
@@ -216,6 +203,11 @@ function IndexPopup() {
                       <span>• 最近: {new Date(site.lastBlocked).toLocaleDateString()}</span>
                     )}
                   </div>
+                  {site.domain !== site.description && (
+                    <div className="text-xs text-gray-400 mt-1">
+                      规则: {site.domain}
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={() => removeDomain(site.domain)}

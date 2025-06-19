@@ -69,20 +69,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 })
 
-// 监听标签页更新，在Google搜索页面注入内容脚本
+// Plasmo框架会自动注入content script，这里不需要手动注入
+// 只需要监听标签页更新来处理其他逻辑
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url) {
     try {
       const url = new URL(tab.url)
 
-      // 检查是否是Google搜索页面
+      // 检查是否是Google搜索页面，发送消息给content script
       if (url.hostname.includes('google.') && url.pathname === '/search') {
-        chrome.scripting.executeScript({
-          target: { tabId },
-          files: ['static/content-scripts/block-site.js']
-        }).catch(error => {
-          console.error('Zearch: Failed to inject content script', error)
-        })
+        // 延迟一点发送消息，确保content script已加载
+        setTimeout(() => {
+          chrome.tabs.sendMessage(tabId, {
+            action: 'pageLoaded',
+            url: tab.url
+          }).catch(() => {
+            // 忽略错误，content script可能还没准备好
+          })
+        }, 100)
       }
     } catch (error) {
       console.error('Zearch: Invalid URL', error)

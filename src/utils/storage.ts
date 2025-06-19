@@ -19,9 +19,10 @@ export interface ExtensionSettings {
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   isEnabled: true,
   blockedSites: [
-    { domain: "zhihu.com", blockedCount: 0, addedAt: Date.now() },
-    { domain: "quora.com", blockedCount: 0, addedAt: Date.now() },
-    { domain: "reddit.com", blockedCount: 0, addedAt: Date.now() }
+    { domain: ".*\\.zhihu\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "知乎网站" },
+    { domain: ".*\\.quora\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "Quora网站" },
+    { domain: ".*\\.reddit\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "Reddit网站" },
+    { domain: ".*\\.csdn\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "CSDN网站" }
   ],
   totalBlocked: 0,
   blockMode: 'dim',
@@ -87,31 +88,57 @@ export class StorageManager {
     return { ...this.settings }
   }
 
-  // 添加屏蔽网站
-  async addBlockedSite(domain: string, isRegex: boolean = false, description?: string): Promise<boolean> {
-    const normalizedDomain = isRegex ? domain.trim() : domain.toLowerCase().trim()
+  // 生成网站的正则表达式
+  generateSiteRegex(input: string): { regex: string, description: string } {
+    const trimmed = input.toLowerCase().trim()
+
+    // 如果输入已经是正则表达式格式，直接返回
+    if (trimmed.includes('.*') || trimmed.includes('\\')) {
+      return { regex: trimmed, description: `自定义正则: ${trimmed}` }
+    }
+
+    // 移除协议和路径
+    let domain = trimmed.replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+
+    // 移除www前缀
+    domain = domain.replace(/^www\./, '')
+
+    // 转义特殊字符
+    const escapedDomain = domain.replace(/\./g, '\\.')
+
+    // 生成正则表达式：匹配任何子域名和该域名
+    const regex = `.*\\.${escapedDomain}.*|^${escapedDomain}$`
+
+    return {
+      regex,
+      description: `${domain}及其子域名`
+    }
+  }
+
+  // 添加屏蔽网站 (默认使用正则)
+  async addBlockedSite(input: string, description?: string): Promise<boolean> {
+    const { regex, description: autoDesc } = this.generateSiteRegex(input)
+    const finalDescription = description || autoDesc
 
     // 检查是否已存在
-    if (this.settings.blockedSites.some(site => site.domain === normalizedDomain)) {
+    if (this.settings.blockedSites.some(site => site.domain === regex)) {
       return false
     }
 
-    // 如果是正则表达式，验证其有效性
-    if (isRegex) {
-      try {
-        new RegExp(normalizedDomain)
-      } catch (error) {
-        console.error('Invalid regex pattern:', normalizedDomain)
-        return false
-      }
+    // 验证正则表达式有效性
+    try {
+      new RegExp(regex)
+    } catch (error) {
+      console.error('Invalid regex pattern:', regex)
+      return false
     }
 
     const newSite: BlockedSite = {
-      domain: normalizedDomain,
+      domain: regex,
       blockedCount: 0,
       addedAt: Date.now(),
-      isRegex,
-      description
+      isRegex: true,
+      description: finalDescription
     }
 
     const newBlockedSites = [...this.settings.blockedSites, newSite]

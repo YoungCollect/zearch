@@ -1,4 +1,24 @@
-export {}
+import type { PlasmoCSConfig } from "plasmo"
+
+export const config: PlasmoCSConfig = {
+  matches: [
+    "*://www.google.com/search*",
+    "*://www.google.co.uk/search*",
+    "*://www.google.ca/search*",
+    "*://www.google.com.au/search*",
+    "*://www.google.de/search*",
+    "*://www.google.fr/search*",
+    "*://www.google.it/search*",
+    "*://www.google.es/search*",
+    "*://www.google.co.jp/search*",
+    "*://www.google.co.kr/search*",
+    "*://www.google.com.br/search*",
+    "*://www.google.ru/search*",
+    "*://www.google.com.mx/search*",
+    "*://www.google.co.in/search*"
+  ],
+  run_at: "document_end"
+}
 
 import { storageManager, type ExtensionSettings } from "../utils/storage"
 
@@ -20,7 +40,7 @@ async function initialize() {
   }
 }
 
-// 监听来自popup的消息
+// 监听来自popup和background的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'toggleBlocking') {
     if (settings) {
@@ -32,6 +52,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         cleanup()
       }
     }
+  } else if (message.action === 'pageLoaded') {
+    // 页面加载完成，重新初始化
+    if (settings && settings.isEnabled) {
+      setTimeout(() => {
+        blockSites()
+      }, 500)
+    }
+  } else if (message.action === 'settingsChanged') {
+    // 设置发生变化，重新加载设置
+    initialize()
   }
 })
 
@@ -198,33 +228,30 @@ function blockSites() {
       const hostname = urlObj.hostname.toLowerCase();
 
       for (const site of settings.blockedSites) {
-        const domain = site.domain.toLowerCase()
         let shouldBlock = false
 
-        if (site.isRegex) {
-          try {
-            const regex = new RegExp(site.domain, 'i')
-            shouldBlock = regex.test(hostname)
-          } catch (error) {
-            console.warn('Zearch: Invalid regex pattern:', site.domain)
-            continue
-          }
-        } else {
-          shouldBlock = hostname === domain || hostname.endsWith('.' + domain)
+        // 默认所有规则都是正则表达式
+        try {
+          const regex = new RegExp(site.domain, 'i')
+          shouldBlock = regex.test(hostname)
+        } catch (error) {
+          console.warn('Zearch: Invalid regex pattern:', site.domain)
+          continue
         }
 
         if (shouldBlock) {
           // 根据屏蔽模式应用不同的处理
-          applyBlockMode(result, domain, settings.blockMode)
+          const displayName = site.description || site.domain
+          applyBlockMode(result, displayName, settings.blockMode)
 
           // 标记为已屏蔽
-          result.setAttribute('data-zearch-blocked', domain)
+          result.setAttribute('data-zearch-blocked', site.domain)
 
           // 更新统计
-          updateStats(domain)
+          updateStats(site.domain)
           blockedCount++
 
-          console.log(`Zearch: Blocked ${hostname} using ${site.isRegex ? 'regex' : 'domain'} match`)
+          console.log(`Zearch: Blocked ${hostname} using regex: ${site.domain}`)
           break;
         }
       }

@@ -223,13 +223,13 @@ function IndexOptions() {
             </div>
             <div className="bg-green-50 rounded-lg p-4">
               <div className="text-2xl font-bold text-green-600">{settings.blockedSites.length}</div>
-              <div className="text-sm text-gray-600">屏蔽网站</div>
+              <div className="text-sm text-gray-600">屏蔽规则</div>
             </div>
             <div className="bg-purple-50 rounded-lg p-4">
               <div className="text-2xl font-bold text-purple-600">
                 {settings.blockedSites.reduce((sum, site) => sum + site.blockedCount, 0)}
               </div>
-              <div className="text-sm text-gray-600">活跃屏蔽</div>
+              <div className="text-sm text-gray-600">累计屏蔽</div>
             </div>
           </div>
         </div>
