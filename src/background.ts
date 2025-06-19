@@ -72,16 +72,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // 监听标签页更新，在Google搜索页面注入内容脚本
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url) {
-    const url = new URL(tab.url)
+    try {
+      const url = new URL(tab.url)
 
-    // 检查是否是Google搜索页面
-    if (url.hostname.includes('google.') && url.pathname === '/search') {
-      chrome.scripting.executeScript({
-        target: { tabId },
-        files: ['contents/block-site.js']
-      }).catch(error => {
-        console.error('Zearch: Failed to inject content script', error)
-      })
+      // 检查是否是Google搜索页面
+      if (url.hostname.includes('google.') && url.pathname === '/search') {
+        chrome.scripting.executeScript({
+          target: { tabId },
+          files: ['static/content-scripts/block-site.js']
+        }).catch(error => {
+          console.error('Zearch: Failed to inject content script', error)
+        })
+      }
+    } catch (error) {
+      console.error('Zearch: Invalid URL', error)
     }
   }
 })
@@ -96,14 +100,40 @@ chrome.action.onClicked.addListener((tab) => {
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync') {
     // 通知所有Google搜索标签页设置已更改
-    chrome.tabs.query({ url: '*://www.google.*/search*' }, (tabs) => {
-      tabs.forEach(tab => {
-        if (tab.id) {
-          chrome.tabs.sendMessage(tab.id, {
-            action: 'settingsChanged',
-            changes
-          }).catch(() => {
-            // 忽略错误，可能是标签页还没有加载内容脚本
+    chrome.tabs.query({ url: '*://www.google.com/search*' }, (tabs) => {
+      if (tabs && tabs.length > 0) {
+        tabs.forEach(tab => {
+          if (tab.id) {
+            chrome.tabs.sendMessage(tab.id, {
+              action: 'settingsChanged',
+              changes
+            }).catch(() => {
+              // 忽略错误，可能是标签页还没有加载内容脚本
+            })
+          }
+        })
+      }
+    })
+
+    // 也查询其他Google域名
+    const googleDomains = [
+      '*://www.google.co.uk/search*',
+      '*://www.google.ca/search*',
+      '*://www.google.com.au/search*'
+    ]
+
+    googleDomains.forEach(pattern => {
+      chrome.tabs.query({ url: pattern }, (tabs) => {
+        if (tabs && tabs.length > 0) {
+          tabs.forEach(tab => {
+            if (tab.id) {
+              chrome.tabs.sendMessage(tab.id, {
+                action: 'settingsChanged',
+                changes
+              }).catch(() => {
+                // 忽略错误
+              })
+            }
           })
         }
       })

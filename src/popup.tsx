@@ -5,6 +5,7 @@ import { storageManager, type ExtensionSettings, type BlockedSite } from "./util
 function IndexPopup() {
   const [settings, setSettings] = useState<ExtensionSettings | null>(null)
   const [newDomain, setNewDomain] = useState("")
+  const [isRegex, setIsRegex] = useState(false)
   const [loading, setLoading] = useState(true)
 
   // 加载设置
@@ -58,15 +59,16 @@ function IndexPopup() {
     if (!newDomain.trim()) return
 
     try {
-      const success = await storageManager.addBlockedSite(newDomain.trim())
+      const success = await storageManager.addBlockedSite(newDomain.trim(), isRegex)
       if (success) {
         setNewDomain("")
+        setIsRegex(false)
       } else {
-        alert("该域名已存在于屏蔽列表中")
+        alert(isRegex ? "该正则表达式已存在或无效" : "该域名已存在于屏蔽列表中")
       }
     } catch (error) {
       console.error('Failed to add domain:', error)
-      alert("添加域名失败，请重试")
+      alert("添加失败，请重试")
     }
   }
 
@@ -149,21 +151,37 @@ function IndexPopup() {
 
       {/* 添加新域名 */}
       <div className="mb-4">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={newDomain}
-            onChange={(e) => setNewDomain(e.target.value)}
-            placeholder="输入要屏蔽的域名"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onKeyPress={(e) => e.key === 'Enter' && addDomain()}
-          />
-          <button
-            onClick={addDomain}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            添加
-          </button>
+        <div className="space-y-2">
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={newDomain}
+              onChange={(e) => setNewDomain(e.target.value)}
+              placeholder={isRegex ? "输入正则表达式 (如: .*\\.example\\.com)" : "输入要屏蔽的域名"}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onKeyPress={(e) => e.key === 'Enter' && addDomain()}
+            />
+            <button
+              onClick={addDomain}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              添加
+            </button>
+          </div>
+          <label className="flex items-center space-x-2 text-sm">
+            <input
+              type="checkbox"
+              checked={isRegex}
+              onChange={(e) => setIsRegex(e.target.checked)}
+              className="rounded"
+            />
+            <span className="text-gray-600">使用正则表达式</span>
+            {isRegex && (
+              <span className="text-xs text-gray-500">
+                (支持复杂匹配模式)
+              </span>
+            )}
+          </label>
         </div>
       </div>
 
@@ -184,7 +202,14 @@ function IndexPopup() {
                 className="flex items-center justify-between p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
               >
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">{site.domain}</p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm font-medium text-gray-800">{site.domain}</p>
+                    {site.isRegex && (
+                      <span className="px-1.5 py-0.5 bg-purple-100 text-purple-600 text-xs rounded">
+                        正则
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center space-x-2 text-xs text-gray-500">
                     <span>已屏蔽 {site.blockedCount} 次</span>
                     {site.lastBlocked && (

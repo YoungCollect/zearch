@@ -89,6 +89,61 @@ function createBlockedIndicator(domain: string): HTMLElement {
   return indicator
 }
 
+// 应用不同的屏蔽模式
+function applyBlockMode(element: Element, domain: string, mode: 'hide' | 'dim' | 'replace') {
+  switch (mode) {
+    case 'hide':
+      element.style.display = 'none'
+      break
+
+    case 'dim':
+      element.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out'
+      element.style.opacity = '0.3'
+      element.style.transform = 'scale(0.95)'
+      element.style.filter = 'grayscale(100%)'
+
+      // 添加屏蔽提示
+      const dimIndicator = createBlockedIndicator(domain)
+      element.insertBefore(dimIndicator, element.firstChild)
+      break
+
+    case 'replace':
+      // 保存原始内容
+      const originalContent = element.innerHTML
+      element.setAttribute('data-zearch-original', originalContent)
+
+      // 替换为屏蔽提示
+      element.innerHTML = `
+        <div style="
+          background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+          border: 2px dashed #d1d5db;
+          border-radius: 8px;
+          padding: 20px;
+          text-align: center;
+          color: #6b7280;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        ">
+          <div style="font-size: 24px; margin-bottom: 8px;">🚫</div>
+          <div style="font-weight: 600; margin-bottom: 4px;">已屏蔽网站</div>
+          <div style="font-size: 14px; margin-bottom: 12px;">${domain}</div>
+          <button onclick="this.parentElement.parentElement.innerHTML = this.parentElement.parentElement.getAttribute('data-zearch-original')"
+                  style="
+                    background: #3b82f6;
+                    color: white;
+                    border: none;
+                    padding: 6px 12px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    cursor: pointer;
+                  ">
+            显示内容
+          </button>
+        </div>
+      `
+      break
+  }
+}
+
 // 更新统计数据
 async function updateStats(domain: string) {
   try {
@@ -144,18 +199,23 @@ function blockSites() {
 
       for (const site of settings.blockedSites) {
         const domain = site.domain.toLowerCase()
-        if (hostname === domain || hostname.endsWith('.' + domain)) {
-          // 创建视觉反馈
-          const indicator = createBlockedIndicator(domain)
+        let shouldBlock = false
 
-          // 添加淡出动画
-          result.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out'
-          result.style.opacity = '0.3'
-          result.style.transform = 'scale(0.95)'
-          result.style.filter = 'grayscale(100%)'
+        if (site.isRegex) {
+          try {
+            const regex = new RegExp(site.domain, 'i')
+            shouldBlock = regex.test(hostname)
+          } catch (error) {
+            console.warn('Zearch: Invalid regex pattern:', site.domain)
+            continue
+          }
+        } else {
+          shouldBlock = hostname === domain || hostname.endsWith('.' + domain)
+        }
 
-          // 插入屏蔽提示
-          result.insertBefore(indicator, result.firstChild)
+        if (shouldBlock) {
+          // 根据屏蔽模式应用不同的处理
+          applyBlockMode(result, domain, settings.blockMode)
 
           // 标记为已屏蔽
           result.setAttribute('data-zearch-blocked', domain)
@@ -164,7 +224,7 @@ function blockSites() {
           updateStats(domain)
           blockedCount++
 
-          console.log(`Zearch: Blocked ${hostname}`)
+          console.log(`Zearch: Blocked ${hostname} using ${site.isRegex ? 'regex' : 'domain'} match`)
           break;
         }
       }
@@ -188,10 +248,20 @@ function cleanup() {
   blockedElements.forEach(element => {
     element.removeAttribute('data-zearch-blocked')
     element.removeAttribute('data-zearch-processed')
+
+    // 恢复样式
+    element.style.display = ''
     element.style.opacity = ''
     element.style.transform = ''
     element.style.filter = ''
     element.style.transition = ''
+
+    // 恢复替换模式的原始内容
+    const originalContent = element.getAttribute('data-zearch-original')
+    if (originalContent) {
+      element.innerHTML = originalContent
+      element.removeAttribute('data-zearch-original')
+    }
 
     // 移除屏蔽提示
     const indicator = element.querySelector('.zearch-blocked-indicator')

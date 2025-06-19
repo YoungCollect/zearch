@@ -3,6 +3,8 @@ export interface BlockedSite {
   blockedCount: number
   addedAt: number
   lastBlocked?: number
+  isRegex?: boolean
+  description?: string
 }
 
 export interface ExtensionSettings {
@@ -86,18 +88,30 @@ export class StorageManager {
   }
 
   // 添加屏蔽网站
-  async addBlockedSite(domain: string): Promise<boolean> {
-    const normalizedDomain = domain.toLowerCase().trim()
-    
+  async addBlockedSite(domain: string, isRegex: boolean = false, description?: string): Promise<boolean> {
+    const normalizedDomain = isRegex ? domain.trim() : domain.toLowerCase().trim()
+
     // 检查是否已存在
     if (this.settings.blockedSites.some(site => site.domain === normalizedDomain)) {
       return false
     }
 
+    // 如果是正则表达式，验证其有效性
+    if (isRegex) {
+      try {
+        new RegExp(normalizedDomain)
+      } catch (error) {
+        console.error('Invalid regex pattern:', normalizedDomain)
+        return false
+      }
+    }
+
     const newSite: BlockedSite = {
       domain: normalizedDomain,
       blockedCount: 0,
-      addedAt: Date.now()
+      addedAt: Date.now(),
+      isRegex,
+      description
     }
 
     const newBlockedSites = [...this.settings.blockedSites, newSite]

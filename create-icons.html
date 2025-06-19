@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zearch Icon Generator</title>
+</head>
+<body>
+    <h1>Zearch Logo Generator</h1>
+    <p>这个页面可以帮你生成不同尺寸的图标</p>
+    
+    <!-- 16x16 图标 -->
+    <div>
+        <h3>16x16 图标</h3>
+        <canvas id="icon16" width="16" height="16"></canvas>
+    </div>
+    
+    <!-- 32x32 图标 -->
+    <div>
+        <h3>32x32 图标</h3>
+        <canvas id="icon32" width="32" height="32"></canvas>
+    </div>
+    
+    <!-- 48x48 图标 -->
+    <div>
+        <h3>48x48 图标</h3>
+        <canvas id="icon48" width="48" height="48"></canvas>
+    </div>
+    
+    <!-- 128x128 图标 -->
+    <div>
+        <h3>128x128 图标</h3>
+        <canvas id="icon128" width="128" height="128"></canvas>
+    </div>
+    
+    <script>
+        function drawIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            const center = size / 2;
+            const radius = size * 0.4;
+            
+            // 清除画布
+            ctx.clearRect(0, 0, size, size);
+            
+            // 绘制背景圆形
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#3b82f6');
+            gradient.addColorStop(1, '#1d4ed8');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(center, center, radius, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // 绘制边框
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = size > 32 ? 2 : 1;
+            ctx.stroke();
+            
+            if (size >= 32) {
+                // 绘制搜索图标
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = size > 64 ? 3 : 2;
+                ctx.lineCap = 'round';
+                
+                const searchRadius = size * 0.15;
+                const searchX = center - size * 0.1;
+                const searchY = center - size * 0.1;
+                
+                ctx.beginPath();
+                ctx.arc(searchX, searchY, searchRadius, 0, 2 * Math.PI);
+                ctx.stroke();
+                
+                // 搜索手柄
+                const handleStart = searchRadius * 0.7;
+                ctx.beginPath();
+                ctx.moveTo(searchX + handleStart, searchY + handleStart);
+                ctx.lineTo(searchX + handleStart + size * 0.08, searchY + handleStart + size * 0.08);
+                ctx.stroke();
+            }
+            
+            // 绘制屏蔽符号
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = size > 64 ? 4 : (size > 32 ? 3 : 2);
+            ctx.lineCap = 'round';
+            
+            // 屏蔽圆圈
+            ctx.beginPath();
+            ctx.arc(center, center, radius * 0.8, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // 屏蔽斜线
+            const lineOffset = radius * 0.6;
+            ctx.beginPath();
+            ctx.moveTo(center - lineOffset, center - lineOffset);
+            ctx.lineTo(center + lineOffset, center + lineOffset);
+            ctx.stroke();
+            
+            if (size >= 48) {
+                // 绘制Z字母
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${size * 0.2}px Arial, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Z', center, center + radius * 0.6);
+            }
+        }
+        
+        // 生成所有尺寸的图标
+        drawIcon(document.getElementById('icon16'), 16);
+        drawIcon(document.getElementById('icon32'), 32);
+        drawIcon(document.getElementById('icon48'), 48);
+        drawIcon(document.getElementById('icon128'), 128);
+        
+        // 添加下载功能
+        function downloadCanvas(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // 添加下载按钮
+        document.querySelectorAll('canvas').forEach(canvas => {
+            const button = document.createElement('button');
+            button.textContent = '下载';
+            button.onclick = () => downloadCanvas(canvas.id, `zearch-${canvas.width}x${canvas.height}.png`);
+            canvas.parentNode.appendChild(button);
+        });
+    </script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        div {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        canvas {
+            border: 1px solid #ddd;
+            margin-right: 10px;
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</body>
+</html>
