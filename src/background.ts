@@ -94,8 +94,12 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
           chrome.tabs.sendMessage(tabId, {
             action: 'pageLoaded',
             url: tab.url
-          }).catch(() => {
-            // 忽略错误，content script可能还没准备好
+          }).catch((error) => {
+            // 忽略常见的错误，避免控制台警告
+            if (chrome.runtime.lastError) {
+              // 清除lastError
+              chrome.runtime.lastError
+            }
           })
         }, 100)
       }
@@ -122,8 +126,11 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
             chrome.tabs.sendMessage(tab.id, {
               action: 'settingsChanged',
               changes
-            }).catch(() => {
-              // 忽略错误，可能是标签页还没有加载内容脚本
+            }).catch((error) => {
+              // 忽略常见的错误，避免控制台警告
+              if (chrome.runtime.lastError) {
+                chrome.runtime.lastError
+              }
             })
           }
         })
@@ -145,8 +152,11 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
               chrome.tabs.sendMessage(tab.id, {
                 action: 'settingsChanged',
                 changes
-              }).catch(() => {
-                // 忽略错误
+              }).catch((error) => {
+                // 忽略常见的错误，避免控制台警告
+                if (chrome.runtime.lastError) {
+                  chrome.runtime.lastError
+                }
               })
             }
           })

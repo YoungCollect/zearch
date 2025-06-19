@@ -19,9 +19,6 @@ export interface ExtensionSettings {
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   isEnabled: true,
   blockedSites: [
-    { domain: ".*\\.zhihu\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "知乎网站" },
-    { domain: ".*\\.quora\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "Quora网站" },
-    { domain: ".*\\.reddit\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "Reddit网站" },
     { domain: ".*\\.csdn\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "CSDN网站" }
   ],
   totalBlocked: 0,

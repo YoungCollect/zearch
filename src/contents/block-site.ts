@@ -389,8 +389,11 @@ function blockSites() {
             domain: domains.join(', '),
             count: totalBlocked,
             message: message
-          }).catch(() => {
-            // 忽略错误
+          }).catch((error) => {
+            // 忽略常见的错误，避免控制台警告
+            if (chrome.runtime.lastError) {
+              chrome.runtime.lastError
+            }
           })
         }
 
