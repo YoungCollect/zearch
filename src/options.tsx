@@ -1,3 +1,4 @@
+import "./app.css"
 import { useState, useEffect } from "react"
 import { storageManager, type ExtensionSettings } from "./utils/storage"
 
@@ -312,7 +313,5 @@ function IndexOptions() {
     </div>
   )
 }
-
-export default IndexOptions
 
 export default IndexOptions

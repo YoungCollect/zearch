@@ -1,3 +1,4 @@
+import "./app.css"
 import { useState, useEffect } from "react"
 import { storageManager, type ExtensionSettings, type BlockedSite } from "./utils/storage"
 
