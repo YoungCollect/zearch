@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zearch 修复测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-item {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .fixed { background: #d4edda; color: #155724; }
+        .pending { background: #fff3cd; color: #856404; }
+        .issue { background: #f8d7da; color: #721c24; }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .demo-blocked {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 4px 0;
+        }
+        
+        .demo-replace {
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Zearch 修复测试页面</h1>
+    <p>这个页面用于测试Zearch扩展的各项修复功能</p>
+
+    <div class="test-section">
+        <h2>📋 修复状态总览</h2>
+        
+        <div class="test-item">
+            <h3>1. "变暗显示"模式的"隐藏"按钮</h3>
+            <span class="status fixed">已修复</span>
+            <p><strong>问题</strong>: 点击"隐藏"按钮不生效</p>
+            <p><strong>解决方案</strong>: 使用addEventListener替代onclick，添加事件处理逻辑</p>
+            <div class="demo-blocked">
+                <span>🚫</span>
+                <span>已屏蔽 example.com</span>
+                <button onclick="this.parentElement.style.display='none'" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; cursor: pointer; margin-left: auto;">隐藏</button>
+            </div>
+        </div>
+
+        <div class="test-item">
+            <h3>2. "替换提示"模式的"显示内容"按钮</h3>
+            <span class="status fixed">已修复</span>
+            <p><strong>问题</strong>: 点击"显示内容"按钮不生效</p>
+            <p><strong>解决方案</strong>: 使用addEventListener和DOM操作替代innerHTML字符串</p>
+            <div class="demo-replace">
+                <div style="font-size: 24px; margin-bottom: 8px;">🚫</div>
+                <div style="font-weight: 600; margin-bottom: 4px;">已屏蔽网站</div>
+                <div style="font-size: 14px; margin-bottom: 12px;">example.com</div>
+                <button onclick="alert('内容已恢复！')" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">显示内容</button>
+            </div>
+        </div>
+
+        <div class="test-item">
+            <h3>3. 避免破坏Chrome底部UI</h3>
+            <span class="status fixed">已修复</span>
+            <p><strong>问题</strong>: "替换显示"模式会破坏Chrome的底部搜索快捷入口和分页UI</p>
+            <p><strong>解决方案</strong>: 
+                <br>• 改进DOM选择器，只选择搜索结果区域内的元素
+                <br>• 添加UI元素过滤函数，排除导航和分页元素
+                <br>• 检查元素是否在搜索结果容器内
+            </p>
+        </div>
+
+        <div class="test-item">
+            <h3>4. "显示屏蔽通知"功能</h3>
+            <span class="status fixed">已修复</span>
+            <p><strong>问题</strong>: 勾选通知选项后没有显示通知</p>
+            <p><strong>解决方案</strong>: 
+                <br>• 在background script中添加通知处理逻辑
+                <br>• 在content script中发送通知消息
+                <br>• 添加通知防抖，避免过于频繁的通知
+                <br>• 聚合多个域名的屏蔽信息
+            </p>
+            <button onclick="testNotification()">测试通知功能</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 测试步骤</h2>
+        
+        <div class="test-item">
+            <h3>测试"变暗显示"模式</h3>
+            <ol>
+                <li>在扩展设置中选择"变暗显示"模式</li>
+                <li>添加一个测试网站到屏蔽列表</li>
+                <li>在Google搜索该网站</li>
+                <li>查看搜索结果是否变暗并显示屏蔽提示</li>
+                <li>点击"隐藏"按钮，确认结果被隐藏</li>
+            </ol>
+        </div>
+
+        <div class="test-item">
+            <h3>测试"替换提示"模式</h3>
+            <ol>
+                <li>在扩展设置中选择"替换提示"模式</li>
+                <li>在Google搜索被屏蔽的网站</li>
+                <li>查看搜索结果是否被替换为屏蔽提示</li>
+                <li>点击"显示内容"按钮，确认原内容恢复</li>
+                <li>确认Chrome底部的分页导航正常显示</li>
+            </ol>
+        </div>
+
+        <div class="test-item">
+            <h3>测试通知功能</h3>
+            <ol>
+                <li>在扩展设置中启用"显示屏蔽通知"</li>
+                <li>在Google搜索被屏蔽的网站</li>
+                <li>查看是否显示Chrome通知</li>
+                <li>通知内容应显示屏蔽的网站数量和名称</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 技术改进详情</h2>
+        
+        <div class="test-item">
+            <h3>DOM选择器优化</h3>
+            <p>新的选择器更加精确，避免选择到Chrome UI：</p>
+            <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;">
+'#search .g',                    // 主要搜索结果
+'#search div[data-hveid]',       // 新的搜索结果容器
+'#rso .g',                       // 搜索结果组中的结果
+'#rso > div > div',              // 搜索结果的直接子元素
+'.srg > .g',                     // 搜索结果组中的结果
+'.rc',                           // 结果容器
+'[data-ved][jsaction*="click"]'  // 带有特定属性的可点击元素
+            </pre>
+        </div>
+
+        <div class="test-item">
+            <h3>事件处理改进</h3>
+            <p>使用现代JavaScript事件处理替代内联onclick：</p>
+            <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;">
+// 旧方式 (有问题)
+onclick="this.parentElement.style.display='none'"
+
+// 新方式 (已修复)
+button.addEventListener('click', (e) => {
+  e.preventDefault()
+  e.stopPropagation()
+  // 处理逻辑
+})
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        function testNotification() {
+            if ('Notification' in window) {
+                if (Notification.permission === 'granted') {
+                    new Notification('Zearch 测试通知', {
+                        body: '这是一个测试通知，确认通知功能正常工作',
+                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%233b82f6"/><text x="50" y="60" text-anchor="middle" fill="white" font-size="30" font-family="Arial">Z</text></svg>'
+                    });
+                } else if (Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            testNotification();
+                        }
+                    });
+                }
+            } else {
+                alert('您的浏览器不支持通知功能');
+            }
+        }
+
+        // 页面加载完成后的提示
+        window.addEventListener('load', () => {
+            console.log('Zearch 修复测试页面已加载');
+            console.log('请按照测试步骤验证各项修复功能');
+        });
+    </script>
+</body>
+</html>

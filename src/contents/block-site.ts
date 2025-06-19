@@ -25,6 +25,10 @@ import { storageManager, type ExtensionSettings } from "../utils/storage"
 // 当前设置
 let settings: ExtensionSettings | null = null
 
+// 通知防抖
+let notificationTimeout: NodeJS.Timeout | null = null
+let pendingNotifications: { [key: string]: number } = {}
+
 // 初始化
 async function initialize() {
   try {
@@ -65,6 +69,43 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 })
 
+// 检查是否为UI元素（避免处理Chrome底部导航等）
+function isUIElement(element: Element): boolean {
+  // 检查是否在搜索结果区域外
+  const searchContainer = document.querySelector('#search, #rso, .srg')
+  if (searchContainer && !searchContainer.contains(element)) {
+    return true
+  }
+
+  // 检查是否为导航、分页等UI元素
+  const uiSelectors = [
+    '[role="navigation"]',
+    '.paging',
+    '#botstuff',
+    '#bottomads',
+    '.commercial-unit-desktop-top',
+    '.commercial-unit-desktop-rhs',
+    '[data-ved][aria-label*="页面"]',
+    '[data-ved][aria-label*="下一页"]',
+    '[data-ved][aria-label*="上一页"]'
+  ]
+
+  for (const selector of uiSelectors) {
+    if (element.matches(selector) || element.closest(selector)) {
+      return true
+    }
+  }
+
+  // 检查是否包含分页相关文本
+  const text = element.textContent?.toLowerCase() || ''
+  const paginationKeywords = ['下一页', 'next', '上一页', 'previous', '页面', 'page']
+  if (paginationKeywords.some(keyword => text.includes(keyword)) && text.length < 50) {
+    return true
+  }
+
+  return false
+}
+
 // 启动初始化
 initialize()
 
@@ -85,37 +126,58 @@ function debounce(func: Function, wait: number) {
 function createBlockedIndicator(domain: string): HTMLElement {
   const indicator = document.createElement('div')
   indicator.className = 'zearch-blocked-indicator'
-  indicator.innerHTML = `
-    <div style="
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin: 4px 0;
-    ">
-      <span style="font-size: 14px;">🚫</span>
-      <span>已屏蔽 ${domain}</span>
-      <button onclick="this.parentElement.parentElement.style.display='none'"
-              style="
-                background: rgba(255,255,255,0.2);
-                border: none;
-                color: white;
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-size: 10px;
-                cursor: pointer;
-                margin-left: auto;
-              ">
-        隐藏
-      </button>
-    </div>
+
+  const hideButton = document.createElement('button')
+  hideButton.textContent = '隐藏'
+  hideButton.style.cssText = `
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    cursor: pointer;
+    margin-left: auto;
   `
+
+  // 添加点击事件处理
+  hideButton.addEventListener('click', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // 隐藏整个搜索结果项
+    const resultElement = indicator.closest('[data-zearch-blocked]')
+    if (resultElement) {
+      resultElement.style.display = 'none'
+    }
+  })
+
+  const container = document.createElement('div')
+  container.style.cssText = `
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 4px 0;
+  `
+
+  const icon = document.createElement('span')
+  icon.textContent = '🚫'
+  icon.style.fontSize = '14px'
+
+  const text = document.createElement('span')
+  text.textContent = `已屏蔽 ${domain}`
+
+  container.appendChild(icon)
+  container.appendChild(text)
+  container.appendChild(hideButton)
+  indicator.appendChild(container)
+
   return indicator
 }
 
@@ -142,34 +204,62 @@ function applyBlockMode(element: Element, domain: string, mode: 'hide' | 'dim' |
       const originalContent = element.innerHTML
       element.setAttribute('data-zearch-original', originalContent)
 
-      // 替换为屏蔽提示
-      element.innerHTML = `
-        <div style="
-          background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-          border: 2px dashed #d1d5db;
-          border-radius: 8px;
-          padding: 20px;
-          text-align: center;
-          color: #6b7280;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        ">
-          <div style="font-size: 24px; margin-bottom: 8px;">🚫</div>
-          <div style="font-weight: 600; margin-bottom: 4px;">已屏蔽网站</div>
-          <div style="font-size: 14px; margin-bottom: 12px;">${domain}</div>
-          <button onclick="this.parentElement.parentElement.innerHTML = this.parentElement.parentElement.getAttribute('data-zearch-original')"
-                  style="
-                    background: #3b82f6;
-                    color: white;
-                    border: none;
-                    padding: 6px 12px;
-                    border-radius: 4px;
-                    font-size: 12px;
-                    cursor: pointer;
-                  ">
-            显示内容
-          </button>
-        </div>
+      // 创建替换内容
+      const replaceContainer = document.createElement('div')
+      replaceContainer.style.cssText = `
+        background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+        border: 2px dashed #d1d5db;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        color: #6b7280;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       `
+
+      const icon = document.createElement('div')
+      icon.textContent = '🚫'
+      icon.style.cssText = 'font-size: 24px; margin-bottom: 8px;'
+
+      const title = document.createElement('div')
+      title.textContent = '已屏蔽网站'
+      title.style.cssText = 'font-weight: 600; margin-bottom: 4px;'
+
+      const domainText = document.createElement('div')
+      domainText.textContent = domain
+      domainText.style.cssText = 'font-size: 14px; margin-bottom: 12px;'
+
+      const showButton = document.createElement('button')
+      showButton.textContent = '显示内容'
+      showButton.style.cssText = `
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+      `
+
+      // 添加点击事件处理
+      showButton.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const original = element.getAttribute('data-zearch-original')
+        if (original) {
+          element.innerHTML = original
+          element.removeAttribute('data-zearch-original')
+          element.removeAttribute('data-zearch-blocked')
+        }
+      })
+
+      replaceContainer.appendChild(icon)
+      replaceContainer.appendChild(title)
+      replaceContainer.appendChild(domainText)
+      replaceContainer.appendChild(showButton)
+
+      // 替换内容
+      element.innerHTML = ''
+      element.appendChild(replaceContainer)
       break
   }
 }
@@ -187,16 +277,15 @@ async function updateStats(domain: string) {
 function blockSites() {
   if (!settings || !settings.isEnabled) return
 
-  // 使用更通用的选择器来匹配Google搜索结果
+  // 使用更精确的选择器来匹配Google搜索结果，避免选择到Chrome UI
   const selectors = [
-    'div.g', // 传统选择器
-    'div[data-hveid]', // 新的搜索结果容器
-    'div[jscontroller]', // 带有jscontroller的div
-    'div[jsname]', // 带有jsname的div
-    'div[data-ved]', // 带有data-ved的div
-    'div[jsaction]', // 带有jsaction的div
-    '.srg > div', // 搜索结果组
-    '.rc' // 结果容器
+    '#search .g', // 主要搜索结果
+    '#search div[data-hveid]', // 新的搜索结果容器
+    '#rso .g', // 搜索结果组中的结果
+    '#rso > div > div', // 搜索结果的直接子元素
+    '.srg > .g', // 搜索结果组中的结果
+    '.rc', // 结果容器
+    '[data-ved][jsaction*="click"]' // 带有特定属性的可点击元素
   ];
 
   let results: NodeListOf<Element> | null = null;
@@ -214,6 +303,10 @@ function blockSites() {
   results.forEach(result => {
     // 检查是否已经被处理过
     if (result.hasAttribute('data-zearch-processed')) return;
+
+    // 过滤掉Chrome UI元素和非搜索结果元素
+    if (isUIElement(result)) return;
+
     result.setAttribute('data-zearch-processed', 'true')
 
     const link = result.querySelector('a[href]');
@@ -262,6 +355,49 @@ function blockSites() {
 
   if (blockedCount > 0) {
     console.log(`Zearch: Blocked ${blockedCount} results`)
+
+    // 发送通知消息到background script (使用防抖)
+    if (settings.showNotifications) {
+      // 累积通知数据
+      const blockedElements = document.querySelectorAll('[data-zearch-blocked]')
+      blockedElements.forEach(element => {
+        const domain = element.getAttribute('data-zearch-blocked')
+        if (domain) {
+          const site = settings.blockedSites.find(s => s.domain === domain)
+          const displayName = site?.description || domain
+          pendingNotifications[displayName] = (pendingNotifications[displayName] || 0) + 1
+        }
+      })
+
+      // 清除之前的定时器
+      if (notificationTimeout) {
+        clearTimeout(notificationTimeout)
+      }
+
+      // 设置新的定时器，延迟发送通知
+      notificationTimeout = setTimeout(() => {
+        const totalBlocked = Object.values(pendingNotifications).reduce((sum, count) => sum + count, 0)
+        const domains = Object.keys(pendingNotifications)
+
+        if (totalBlocked > 0) {
+          const message = domains.length === 1
+            ? `已屏蔽 ${totalBlocked} 个来自 ${domains[0]} 的搜索结果`
+            : `已屏蔽 ${totalBlocked} 个来自 ${domains.length} 个网站的搜索结果`
+
+          chrome.runtime.sendMessage({
+            action: 'showNotification',
+            domain: domains.join(', '),
+            count: totalBlocked,
+            message: message
+          }).catch(() => {
+            // 忽略错误
+          })
+        }
+
+        // 清空待发送通知
+        pendingNotifications = {}
+      }, 1000) // 1秒后发送通知
+    }
   }
 }
 

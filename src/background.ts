@@ -58,14 +58,25 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 })
 
 // 监听来自content script的消息
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === 'getSettings') {
     // 返回当前设置
     const settings = storageManager.getSettings()
     sendResponse(settings)
   } else if (message.action === 'updateStats') {
     // 更新统计数据
-    storageManager.updateBlockStats(message.domain)
+    await storageManager.updateBlockStats(message.domain)
+  } else if (message.action === 'showNotification') {
+    // 显示屏蔽通知
+    const settings = storageManager.getSettings()
+    if (settings.showNotifications) {
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'assets/icon.png',
+        title: 'Zearch - 搜索结果已屏蔽',
+        message: message.message || `已屏蔽 ${message.count} 个搜索结果`
+      })
+    }
   }
 })
 
