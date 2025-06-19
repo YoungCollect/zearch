@@ -2,7 +2,7 @@
   "name": "zearch",
   "displayName": "Zearch",
   "version": "0.0.1",
-  "description": "A basic Plasmo extension.",
+  "description": "A web extension to block search result of sites.",
   "author": "Andy",
   "scripts": {
     "dev": "plasmo dev",
