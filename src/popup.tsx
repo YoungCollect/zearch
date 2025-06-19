@@ -103,9 +103,9 @@ function IndexPopup() {
       {/* 头部 */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+          {/* <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">Z</span>
-          </div>
+          </div> */}
           <h1 className="text-lg font-semibold text-gray-800">Zearch</h1>
         </div>
         <div className="flex items-center space-x-2">
@@ -155,7 +155,7 @@ function IndexPopup() {
               type="text"
               value={newDomain}
               onChange={(e) => setNewDomain(e.target.value)}
-              placeholder="输入网站域名 (如: csdn.net, zhihu.com)"
+              placeholder="Domains or keywords"
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               onKeyPress={(e) => e.key === 'Enter' && addDomain()}
             />
@@ -166,9 +166,9 @@ function IndexPopup() {
               添加
             </button>
           </div>
-          <div className="text-xs text-gray-500">
+          {/* <div className="text-xs text-gray-500">
             💡 自动匹配该域名及其所有子域名 (如: www.csdn.net, blog.csdn.net)
-          </div>
+          </div> */}
         </div>
       </div>
 
