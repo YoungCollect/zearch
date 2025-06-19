@@ -31,7 +31,11 @@
       "https://*/*"
     ],
     "permissions": [
-      "tabs"
+      "tabs",
+      "storage",
+      "contextMenus",
+      "notifications",
+      "scripting"
     ]
   }
 }

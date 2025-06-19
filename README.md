@@ -1,33 +1,204 @@
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+# Zearch - 智能搜索结果屏蔽器
 
-## Getting Started
+一个强大的Chrome扩展，用于屏蔽Google搜索结果中的特定网站，提升你的搜索体验。
 
-First, run the development server:
+## ✨ 功能特性
+
+- 🚫 **智能屏蔽**: 自动屏蔽指定域名的搜索结果
+- 🎨 **多种屏蔽模式**: 支持完全隐藏、变暗显示、替换提示三种模式
+- 📊 **统计分析**: 实时统计屏蔽数据，了解屏蔽效果
+- ⚙️ **灵活配置**: 自定义屏蔽列表，个性化设置
+- 💾 **数据同步**: 使用Chrome同步存储，多设备数据一致
+- 🔄 **实时更新**: 动态监听页面变化，支持无限滚动
+- 🎯 **右键快捷**: 右键链接快速添加到屏蔽列表
+- 📱 **响应式UI**: 现代化界面设计，支持各种屏幕尺寸
+
+## 🚀 快速开始
+
+### 安装依赖
+
+```bash
+pnpm install
+```
+
+### 开发模式
 
 ```bash
 pnpm dev
-# or
-npm run dev
 ```
 
-Open your browser and load the appropriate development build. For example, if you are developing for the chrome browser, using manifest v3, use: `build/chrome-mv3-dev`.
-
-You can start editing the popup by modifying `popup.tsx`. It should auto-update as you make changes. To add an options page, simply add a `options.tsx` file to the root of the project, with a react component default exported. Likewise to add a content page, add a `content.ts` file to the root of the project, importing some module and do some logic, then reload the extension on your browser.
-
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
-
-## Making production build
-
-Run the following:
+### 构建扩展
 
 ```bash
 pnpm build
-# or
-npm run build
 ```
 
-This should create a production bundle for your extension, ready to be zipped and published to the stores.
+### 打包发布
 
-## Submit to the webstores
+```bash
+pnpm package
+```
 
-The easiest way to deploy your Plasmo extension is to use the built-in [bpp](https://bpp.browser.market) GitHub action. Prior to using this action however, make sure to build your extension and upload the first version to the store to establish the basic credentials. Then, simply follow [this setup instruction](https://docs.plasmo.com/framework/workflows/submit) and you should be on your way for automated submission!
+## 📦 安装扩展
+
+1. 运行 `pnpm build` 构建扩展
+2. 打开Chrome浏览器，进入 `chrome://extensions/`
+3. 开启"开发者模式"
+4. 点击"加载已解压的扩展程序"
+5. 选择 `build/chrome-mv3-prod` 文件夹
+
+## 🎯 使用方法
+
+### 基本使用
+
+1. **启用扩展**: 点击扩展图标，确保开关处于开启状态
+2. **添加屏蔽网站**: 在弹窗中输入要屏蔽的域名，点击"添加"
+3. **搜索测试**: 在Google中搜索，被屏蔽的网站将根据设置的模式显示
+
+### 高级功能
+
+- **右键屏蔽**: 在搜索结果页面右键点击链接，选择"屏蔽此域名"
+- **批量管理**: 在设置页面管理所有屏蔽网站
+- **数据导入导出**: 备份和恢复你的设置
+- **统计查看**: 查看屏蔽效果统计
+
+## ⚙️ 配置选项
+
+### 屏蔽模式
+
+- **完全隐藏**: 完全移除屏蔽的搜索结果
+- **变暗显示**: 保留结果但降低透明度和饱和度
+- **替换提示**: 用屏蔽提示替换原始内容
+
+### 其他设置
+
+- **显示通知**: 屏蔽网站时显示通知
+- **统计数据**: 查看和清除屏蔽统计
+- **数据管理**: 导入/导出设置，重置配置
+
+## 🧪 测试
+
+### 自动测试
+
+在浏览器控制台中运行测试脚本：
+
+```javascript
+// 加载测试脚本
+const script = document.createElement('script');
+script.src = chrome.runtime.getURL('test-extension.js');
+document.head.appendChild(script);
+
+// 运行所有测试
+ZearchTests.runAllTests();
+```
+
+### 手动测试
+
+1. **功能测试**:
+   - 添加/删除屏蔽网站
+   - 切换屏蔽模式
+   - 验证统计数据
+
+2. **兼容性测试**:
+   - 不同Google域名 (google.com, google.co.uk等)
+   - 各种搜索结果类型
+   - 动态加载内容
+
+3. **性能测试**:
+   - 大量搜索结果页面
+   - 频繁滚动加载
+   - 多标签页同时使用
+
+## 🛠️ 技术架构
+
+### 核心组件
+
+- **Content Script** (`src/contents/block-site.ts`): 主要屏蔽逻辑
+- **Popup** (`src/popup.tsx`): 扩展弹窗界面
+- **Options** (`src/options.tsx`): 设置页面
+- **Background** (`src/background.ts`): 后台服务
+- **Storage** (`src/utils/storage.ts`): 数据存储管理
+
+### 技术栈
+
+- **框架**: React + TypeScript
+- **构建工具**: Plasmo
+- **样式**: Tailwind CSS
+- **存储**: Chrome Storage API
+- **权限**: tabs, storage, contextMenus, notifications, scripting
+
+## 📊 性能优化
+
+- **防抖处理**: 避免频繁执行屏蔽逻辑
+- **选择器优化**: 使用高效的DOM选择器
+- **内存管理**: 及时清理事件监听器
+- **异步处理**: 非阻塞的数据存储操作
+
+## 🔧 开发指南
+
+### 项目结构
+
+```
+src/
+├── contents/          # 内容脚本
+│   └── block-site.ts
+├── utils/            # 工具函数
+│   └── storage.ts
+├── popup.tsx         # 弹窗组件
+├── options.tsx       # 设置页面
+├── background.ts     # 后台脚本
+└── style.css        # 样式文件
+```
+
+### 添加新功能
+
+1. 在相应组件中添加UI
+2. 在storage.ts中添加数据结构
+3. 在content script中实现逻辑
+4. 更新权限配置
+
+## 🐛 故障排除
+
+### 常见问题
+
+1. **扩展不工作**:
+   - 检查是否启用扩展
+   - 确认在Google搜索页面
+   - 查看控制台错误信息
+
+2. **屏蔽不生效**:
+   - 验证域名格式正确
+   - 检查屏蔽模式设置
+   - 刷新页面重试
+
+3. **数据丢失**:
+   - 检查Chrome同步设置
+   - 尝试导入备份数据
+   - 重新安装扩展
+
+### 调试技巧
+
+- 使用Chrome开发者工具
+- 查看扩展管理页面的错误
+- 在控制台运行测试脚本
+
+## 📝 更新日志
+
+### v0.0.1 (当前版本)
+- ✨ 初始版本发布
+- 🚫 基础屏蔽功能
+- 🎨 多种屏蔽模式
+- 📊 统计功能
+- ⚙️ 设置页面
+
+## 🤝 贡献
+
+欢迎提交Issue和Pull Request！
+
+## 📄 许可证
+
+MIT License
+
+## 👨‍💻 作者
+
+Andy - 专注于提升搜索体验的开发者
