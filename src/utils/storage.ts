@@ -13,17 +13,20 @@ export interface ExtensionSettings {
   totalBlocked: number
   blockMode: 'hide' | 'dim' | 'replace'
   showNotifications: boolean
+  searchResultsPerPage: 10 | 20 | 50 | 100
   version: string
 }
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   isEnabled: true,
   blockedSites: [
+    { domain: ".*\\.baidu\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "Baidu网站" },
     { domain: ".*\\.csdn\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "CSDN网站" }
   ],
   totalBlocked: 0,
   blockMode: 'hide',
   showNotifications: true,
+  searchResultsPerPage: 10,
   version: '0.0.1'
 }
 
@@ -46,21 +49,24 @@ export class StorageManager {
   // 加载设置
   async loadSettings(): Promise<ExtensionSettings> {
     return new Promise((resolve) => {
-      chrome.storage.sync.get(Object.keys(DEFAULT_SETTINGS), (result) => {
+      chrome.storage.sync.get(['settings'], (result) => {
+        // 如果存储中有settings对象，使用它；否则使用默认设置
+        const storedSettings = result.settings || {}
+
         // 合并默认设置和存储的设置
         this.settings = {
           ...DEFAULT_SETTINGS,
-          ...result,
+          ...storedSettings,
           // 确保blockedSites是数组
-          blockedSites: result.blockedSites || DEFAULT_SETTINGS.blockedSites
+          blockedSites: storedSettings.blockedSites || DEFAULT_SETTINGS.blockedSites
         }
-        
+
         // 数据迁移：为旧数据添加新字段
         this.settings.blockedSites = this.settings.blockedSites.map(site => ({
           ...site,
           addedAt: site.addedAt || Date.now()
         }))
-        
+
         console.log('Zearch: Settings loaded', this.settings)
         this.notifyListeners()
         resolve(this.settings)
@@ -72,7 +78,7 @@ export class StorageManager {
   async saveSettings(newSettings: Partial<ExtensionSettings>): Promise<void> {
     return new Promise((resolve) => {
       this.settings = { ...this.settings, ...newSettings }
-      chrome.storage.sync.set(this.settings, () => {
+      chrome.storage.sync.set({ settings: this.settings }, () => {
         console.log('Zearch: Settings saved', this.settings)
         this.notifyListeners()
         resolve()
@@ -196,6 +202,11 @@ export class StorageManager {
   // 设置屏蔽模式
   async setBlockMode(mode: 'hide' | 'dim' | 'replace'): Promise<void> {
     await this.saveSettings({ blockMode: mode })
+  }
+
+  // 设置搜索结果数量
+  async setSearchResultsPerPage(count: 10 | 20 | 50 | 100): Promise<void> {
+    await this.saveSettings({ searchResultsPerPage: count })
   }
 
   // 导出设置
