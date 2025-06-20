@@ -16,18 +16,51 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
   // 设置右键菜单
   chrome.contextMenus.create({
-    id: 'zearch-block-domain',
-    title: '屏蔽此域名',
+    id: 'zearch-block-current-domain',
+    title: '屏蔽当前网站域名',
+    contexts: ['page', 'selection', 'image', 'video', 'audio']
+  })
+
+  chrome.contextMenus.create({
+    id: 'zearch-block-link-domain',
+    title: '屏蔽链接域名',
     contexts: ['link']
   })
 })
 
 // 处理右键菜单点击
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (info.menuItemId === 'zearch-block-domain' && info.linkUrl) {
-    try {
-      const url = new URL(info.linkUrl)
-      const domain = url.hostname.toLowerCase()
+  let targetUrl = null
+  let domain = null
+
+  try {
+    // 处理屏蔽当前网站域名
+    if (info.menuItemId === 'zearch-block-current-domain' && tab?.url) {
+      targetUrl = tab.url
+      const url = new URL(targetUrl)
+      domain = url.hostname.toLowerCase()
+    }
+    // 处理屏蔽链接域名
+    else if (info.menuItemId === 'zearch-block-link-domain' && info.linkUrl) {
+      targetUrl = info.linkUrl
+      const url = new URL(targetUrl)
+      domain = url.hostname.toLowerCase()
+    }
+
+    if (domain) {
+      // 过滤掉一些不应该屏蔽的域名
+      const excludedDomains = ['chrome://', 'chrome-extension://', 'moz-extension://', 'edge://', 'about:', 'file://']
+      const isExcluded = excludedDomains.some(excluded => targetUrl.startsWith(excluded))
+
+      if (isExcluded) {
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: 'assets/icon.png',
+          title: 'Zearch',
+          message: '无法屏蔽系统页面或扩展页面'
+        })
+        return
+      }
 
       const success = await storageManager.addBlockedSite(domain)
       if (success) {
@@ -39,8 +72,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
           message: `已添加 ${domain} 到屏蔽列表`
         })
 
-        // 刷新当前标签页以应用屏蔽
-        if (tab?.id) {
+        // 如果是屏蔽当前页面，询问是否关闭标签页
+        if (info.menuItemId === 'zearch-block-current-domain' && tab?.id) {
+          // 可以选择关闭当前标签页或者刷新页面
+          // 这里我们选择刷新页面，让用户看到屏蔽效果
           chrome.tabs.reload(tab.id)
         }
       } else {
@@ -51,9 +86,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
           message: `${domain} 已在屏蔽列表中`
         })
       }
-    } catch (error) {
-      console.error('Zearch: Failed to block domain', error)
     }
+  } catch (error) {
+    console.error('Zearch: Failed to block domain', error)
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: 'assets/icon.png',
+      title: 'Zearch',
+      message: '屏蔽域名失败，请重试'
+    })
   }
 })
 

@@ -85,7 +85,7 @@ function IndexPopup() {
     return (
       <div className="w-80 bg-white flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center space-y-3">
-          <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+          <div className="w-6 h-6 border-2 border-gray-300 border-t-primary rounded-full animate-spin"></div>
           <div className="text-gray-500 text-sm">加载中...</div>
         </div>
       </div>
@@ -95,7 +95,7 @@ function IndexPopup() {
   return (
     <div className="w-80 bg-white shadow-lg border border-gray-200">
       {/* 头部 */}
-      <div className="bg-blue-600 px-4 py-3">
+      <div className="bg-primary px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center">
@@ -126,7 +126,7 @@ function IndexPopup() {
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm text-gray-600">已屏蔽</p>
-              <p className="text-xl font-bold text-blue-600">{settings.totalBlocked}</p>
+              <p className="text-xl font-bold text-primary">{settings.totalBlocked}</p>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-600">规则数</p>
@@ -145,7 +145,7 @@ function IndexPopup() {
                 onClick={() => setSearchResultsPerPage(count as 10 | 20 | 50 | 100)}
                 className={`px-2 py-1 text-sm rounded transition-colors ${
                   settings.searchResultsPerPage === count
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -166,12 +166,12 @@ function IndexPopup() {
               value={newDomain}
               onChange={(e) => setNewDomain(e.target.value)}
               placeholder="输入域名或关键词"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 ring-primary focus:border-transparent"
               onKeyPress={(e) => e.key === 'Enter' && addDomain()}
             />
             <button
               onClick={addDomain}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 bg-primary text-white rounded-md text-sm bg-primary-hover focus:outline-none focus:ring-2 ring-primary"
             >
               添加
             </button>
@@ -184,24 +184,23 @@ function IndexPopup() {
             <h3 className="text-sm font-medium text-gray-700">屏蔽列表</h3>
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="text-xs text-blue-600 hover:text-blue-800"
+              className="text-xs text-primary text-primary-hover"
             >
               {showSettings ? '隐藏' : '设置'}
             </button>
           </div>
           
           {showSettings && (
-            <div className="mb-3 p-2 bg-blue-50 rounded text-xs space-y-2">
+            <div className="mb-3 p-3 bg-gray-50 rounded text-xs space-y-3 border border-gray-200">
               <button
                 onClick={clearStats}
-                className="text-red-600 hover:text-red-800"
+                className="text-red-600 hover:text-red-800 font-medium"
               >
                 清除统计
               </button>
-              <br />
               <button
                 onClick={() => chrome.runtime.openOptionsPage()}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-primary hover:text-primary-hover font-medium block"
               >
                 高级设置
               </button>
