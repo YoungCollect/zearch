@@ -4,12 +4,10 @@ import { storageManager } from "./utils/storage"
 
 // Initialize when extension is installed
 chrome.runtime.onInstalled.addListener(async (details) => {
-  console.log('Zearch: Extension installed/updated', details)
 
   // Initialize storage
   try {
     await storageManager.loadSettings()
-    console.log('Zearch: Settings initialized')
   } catch (error) {
     console.error('Zearch: Failed to initialize settings', error)
   }
@@ -153,7 +151,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 // Handle extension icon click
 chrome.action.onClicked.addListener((tab) => {
   // Open popup (usually handled automatically by manifest, but can add extra logic here)
-  console.log('Zearch: Extension icon clicked')
 })
 
 // Listen for storage changes, sync to all tabs
@@ -206,5 +203,3 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     })
   }
 })
-
-console.log('Zearch: Background script loaded')

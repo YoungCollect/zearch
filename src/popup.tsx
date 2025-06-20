@@ -33,11 +33,55 @@ function IndexPopup() {
   const toggleExtension = async () => {
     if (!settings) return
     try {
+      const newState = !settings.isEnabled
       await storageManager.saveSettings({
-        isEnabled: !settings.isEnabled
+        isEnabled: newState
       })
+
+      // Immediately notify all Google search tabs about the state change
+      await notifySearchTabs('toggleExtension', { isEnabled: newState })
     } catch (error) {
       console.error('Failed to toggle extension:', error)
+    }
+  }
+
+  // Helper function to notify all Google search tabs
+  const notifySearchTabs = async (action: string, data?: any) => {
+    try {
+      // Query all Google search tabs
+      const googleDomains = [
+        '*://www.google.com/search*',
+        '*://www.google.co.uk/search*',
+        '*://www.google.ca/search*',
+        '*://www.google.com.au/search*',
+        '*://www.google.de/search*',
+        '*://www.google.fr/search*',
+        '*://www.google.it/search*',
+        '*://www.google.es/search*',
+        '*://www.google.co.jp/search*',
+        '*://www.google.co.kr/search*',
+        '*://www.google.com.br/search*',
+        '*://www.google.ru/search*',
+        '*://www.google.com.mx/search*',
+        '*://www.google.co.in/search*'
+      ]
+
+      for (const domain of googleDomains) {
+        const tabs = await chrome.tabs.query({ url: domain })
+        for (const tab of tabs) {
+          if (tab.id) {
+            chrome.tabs.sendMessage(tab.id, {
+              action,
+              ...data
+            }).catch((error) => {
+              // Ignore errors for tabs that don't have content script loaded
+              console.error('Could not send message to tab:', tab.id, error.message)
+            })
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to notify search tabs:', error)
     }
   }
 
@@ -74,10 +118,8 @@ function IndexPopup() {
   const setSearchResultsPerPage = async (count: 10 | 20 | 50 | 100) => {
     try {
       await storageManager.setSearchResultsPerPage(count)
-      console.log('Search results per page set to:', count)
     } catch (error) {
       console.error('Failed to set search results per page:', error)
-      alert("Failed to update settings, please try again")
     }
   }
 

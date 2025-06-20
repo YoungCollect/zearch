@@ -67,7 +67,6 @@ export class StorageManager {
           addedAt: site.addedAt || Date.now()
         }))
 
-        console.log('Zearch: Settings loaded', this.settings)
         this.notifyListeners()
         resolve(this.settings)
       })
@@ -79,7 +78,6 @@ export class StorageManager {
     return new Promise((resolve) => {
       this.settings = { ...this.settings, ...newSettings }
       chrome.storage.sync.set({ settings: this.settings }, () => {
-        console.log('Zearch: Settings saved', this.settings)
         this.notifyListeners()
         resolve()
       })
@@ -106,15 +104,28 @@ export class StorageManager {
     // Remove www prefix
     domain = domain.replace(/^www\./, '')
 
-    // Escape special characters
-    const escapedDomain = domain.replace(/\./g, '\\.')
+    // Escape special characters for regex
+    const escapedDomain = domain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-    // Generate regex: match any subdomain and the domain itself
-    const regex = `.*\\.${escapedDomain}.*|^${escapedDomain}$`
+    // Generate more precise regex patterns
+    let regex: string
+
+    if (domain.includes('.')) {
+      // If it's a full domain (e.g., "csdn.net")
+      // Match: csdn.net, www.csdn.net, blog.csdn.net, etc.
+      regex = `(^|\\.)${escapedDomain}$`
+    } else {
+      // If it's just a keyword (e.g., "csdn")
+      // Match: csdn.net, csdn.com, www.csdn.net, blog.csdn.net, etc.
+      // But NOT: somecsdn.com or csdn-like.com
+      regex = `(^|\\.)${escapedDomain}\\.[a-z]{2,}$`
+    }
 
     return {
       regex,
-      description: `${domain} and its subdomains`
+      description: domain.includes('.')
+        ? `${domain} and its subdomains`
+        : `${domain}.* domains and their subdomains`
     }
   }
 

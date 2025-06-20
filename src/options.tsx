@@ -60,10 +60,8 @@ function IndexOptions() {
   const setSearchResultsPerPage = async (count: 10 | 20 | 50 | 100) => {
     try {
       await storageManager.setSearchResultsPerPage(count)
-      console.log('Search results per page set to:', count)
     } catch (error) {
       console.error('Failed to set search results per page:', error)
-      alert("Setting failed, please try again")
     }
   }
 

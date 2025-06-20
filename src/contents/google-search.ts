@@ -24,15 +24,12 @@ async function handleSearchResultsCount() {
     const url = new URL(window.location.href)
     const currentNum = url.searchParams.get('num')
 
-    console.log('Google Search - Current num:', currentNum, 'Target num:', targetNum)
-
     // If current count doesn't match settings, modify URL
     if (currentNum !== targetNum.toString()) {
       url.searchParams.set('num', targetNum.toString())
 
       // Use history.replaceState to avoid redirect loops
       if (url.href !== window.location.href) {
-        console.log('Updating URL to:', url.href)
         window.history.replaceState({}, '', url.href)
 
         // Reload page to apply new search results count
@@ -47,7 +44,6 @@ async function handleSearchResultsCount() {
 // Listen for storage changes
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync' && changes.settings) {
-    console.log('Settings changed, reprocessing search results')
     setTimeout(handleSearchResultsCount, 100)
   }
 })
@@ -61,7 +57,6 @@ const observer = new MutationObserver(() => {
   const url = location.href
   if (url !== lastUrl && url.includes('/search')) {
     lastUrl = url
-    console.log('Google navigation detected:', url)
     setTimeout(handleSearchResultsCount, 200)
   }
 })

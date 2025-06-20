@@ -33,7 +33,6 @@ let pendingNotifications: { [key: string]: number } = {}
 async function initialize() {
   try {
     settings = await storageManager.loadSettings()
-    console.log('Zearch: Settings loaded', settings)
 
     // If enabled, start blocking
     if (settings.isEnabled) {
@@ -46,14 +45,26 @@ async function initialize() {
 
 // Listen for messages from popup and background
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'toggleBlocking') {
+  if (message.action === 'toggleBlocking' || message.action === 'toggleExtension') {
     if (settings) {
-      settings.isEnabled = message.enabled
+      // Update settings with new state
+      const newState = message.enabled !== undefined ? message.enabled : message.isEnabled
+      settings.isEnabled = newState
+
       if (settings.isEnabled) {
+        // Enable blocking: initialize and start blocking
         initializeBlocking()
         blockSites()
       } else {
+        // Disable blocking: cleanup all blocked elements
         cleanup()
+        // Also disconnect observers to stop monitoring
+        if (window.zearchObserver) {
+          window.zearchObserver.disconnect()
+        }
+        if (window.zearchScrollHandler) {
+          document.removeEventListener('scroll', window.zearchScrollHandler)
+        }
       }
     }
   } else if (message.action === 'pageLoaded') {
@@ -191,7 +202,7 @@ function applyBlockMode(element: Element, domain: string, mode: 'hide' | 'dim' |
     case 'dim':
       element.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out'
       element.style.opacity = '0.3'
-      element.style.transform = 'scale(0.95)'
+      element.style.transform = 'scale(0.99)'
       element.style.filter = 'grayscale(100%)'
 
       // Add blocking indicator
@@ -327,6 +338,10 @@ function blockSites() {
         try {
           const regex = new RegExp(site.domain, 'i')
           shouldBlock = regex.test(hostname)
+
+          // Debug logging to help identify false positives
+          if (shouldBlock) {
+          }
         } catch (error) {
           console.warn('Zearch: Invalid regex pattern:', site.domain)
           continue
@@ -344,7 +359,6 @@ function blockSites() {
           updateStats(site.domain)
           blockedCount++
 
-          console.log(`Zearch: Blocked ${hostname} using regex: ${site.domain}`)
           break;
         }
       }
@@ -354,7 +368,6 @@ function blockSites() {
   });
 
   if (blockedCount > 0) {
-    console.log(`Zearch: Blocked ${blockedCount} results`)
 
     // Send notification message to background script (using debounce)
     if (settings.showNotifications) {
@@ -409,9 +422,15 @@ const debouncedBlockSites = debounce(blockSites, 150);
 
 // Cleanup function
 function cleanup() {
+
   // Remove all blocking marks and styles
   const blockedElements = document.querySelectorAll('[data-zearch-blocked]')
-  blockedElements.forEach(element => {
+  const processedElements = document.querySelectorAll('[data-zearch-processed]')
+
+  // Combine both sets of elements
+  const allElements = new Set([...blockedElements, ...processedElements])
+
+  allElements.forEach(element => {
     element.removeAttribute('data-zearch-blocked')
     element.removeAttribute('data-zearch-processed')
 
@@ -430,18 +449,21 @@ function cleanup() {
     }
 
     // Remove blocking indicators
-    const indicator = element.querySelector('.zearch-blocked-indicator')
-    if (indicator) {
-      indicator.remove()
-    }
+    const indicators = element.querySelectorAll('.zearch-blocked-indicator')
+    indicators.forEach(indicator => indicator.remove())
   })
 
-  console.log('Zearch: Cleanup completed')
+  // Clear any pending notifications
+  if (notificationTimeout) {
+    clearTimeout(notificationTimeout)
+    notificationTimeout = null
+  }
+  pendingNotifications = {}
+
 }
 
 // Initialize blocking functionality
 function initializeBlocking() {
-  console.log('Zearch: Initializing blocking...')
 
   // Initial execution
   setTimeout(blockSites, 100)
@@ -510,6 +532,4 @@ declare global {
     zearchScrollHandler?: () => void
   }
 }
-
-console.log('Zearch: Content script loaded')
 
