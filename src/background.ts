@@ -2,11 +2,11 @@
 
 import { storageManager } from "./utils/storage"
 
-// 扩展安装时的初始化
+// Initialize when extension is installed
 chrome.runtime.onInstalled.addListener(async (details) => {
   console.log('Zearch: Extension installed/updated', details)
 
-  // 初始化存储
+  // Initialize storage
   try {
     await storageManager.loadSettings()
     console.log('Zearch: Settings initialized')
@@ -14,33 +14,33 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     console.error('Zearch: Failed to initialize settings', error)
   }
 
-  // 设置右键菜单
+  // Set up context menus
   chrome.contextMenus.create({
     id: 'zearch-block-current-domain',
-    title: '屏蔽当前网站域名',
+    title: 'Block Website Domain',
     contexts: ['page', 'selection', 'image', 'video', 'audio']
   })
 
   chrome.contextMenus.create({
     id: 'zearch-block-link-domain',
-    title: '屏蔽链接域名',
+    title: 'Block Link Domain',
     contexts: ['link']
   })
 })
 
-// 处理右键菜单点击
+// Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   let targetUrl = null
   let domain = null
 
   try {
-    // 处理屏蔽当前网站域名
+    // Handle blocking current website domain
     if (info.menuItemId === 'zearch-block-current-domain' && tab?.url) {
       targetUrl = tab.url
       const url = new URL(targetUrl)
       domain = url.hostname.toLowerCase()
     }
-    // 处理屏蔽链接域名
+    // Handle blocking link domain
     else if (info.menuItemId === 'zearch-block-link-domain' && info.linkUrl) {
       targetUrl = info.linkUrl
       const url = new URL(targetUrl)
@@ -64,18 +64,18 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
       const success = await storageManager.addBlockedSite(domain)
       if (success) {
-        // 通知用户
+        // Notify user
         chrome.notifications.create({
           type: 'basic',
           iconUrl: 'assets/icon.png',
           title: 'Zearch',
-          message: `已添加 ${domain} 到屏蔽列表`
+          message: `Added ${domain} to block list`
         })
 
-        // 如果是屏蔽当前页面，询问是否关闭标签页
+        // If blocking current page, ask whether to close tab
         if (info.menuItemId === 'zearch-block-current-domain' && tab?.id) {
-          // 可以选择关闭当前标签页或者刷新页面
-          // 这里我们选择刷新页面，让用户看到屏蔽效果
+          // Can choose to close current tab or refresh page
+          // Here we choose to refresh page to let user see blocking effect
           chrome.tabs.reload(tab.id)
         }
       } else {
@@ -83,7 +83,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
           type: 'basic',
           iconUrl: 'assets/icon.png',
           title: 'Zearch',
-          message: `${domain} 已在屏蔽列表中`
+          message: `${domain} is already in block list`
         })
       }
     }
@@ -93,29 +93,29 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       type: 'basic',
       iconUrl: 'assets/icon.png',
       title: 'Zearch',
-      message: '屏蔽域名失败，请重试'
+      message: 'Failed to block domain, please try again'
     })
   }
 })
 
-// 监听来自content script的消息
+// Listen for messages from content script
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === 'getSettings') {
-    // 返回当前设置
+    // Return current settings
     const settings = storageManager.getSettings()
     sendResponse(settings)
   } else if (message.action === 'updateStats') {
-    // 更新统计数据
+    // Update statistics data
     await storageManager.updateBlockStats(message.domain)
   } else if (message.action === 'showNotification') {
-    // 显示屏蔽通知
+    // Show blocking notification
     const settings = storageManager.getSettings()
     if (settings.showNotifications) {
       chrome.notifications.create({
         type: 'basic',
         iconUrl: 'assets/icon.png',
-        title: 'Zearch - 搜索结果已屏蔽',
-        message: message.message || `已屏蔽 ${message.count} 个搜索结果`
+        title: 'Zearch - Search Results Blocked',
+        message: message.message || `Blocked ${message.count} search results`
       })
     }
   }
@@ -194,7 +194,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
                 action: 'settingsChanged',
                 changes
               }).catch((error) => {
-                // 忽略常见的错误，避免控制台警告
+                // Ignore common errors to avoid console warnings
                 if (chrome.runtime.lastError) {
                   chrome.runtime.lastError
                 }

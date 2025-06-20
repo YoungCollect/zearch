@@ -216,19 +216,24 @@ function IndexPopup() {
               settings.blockedSites.map((site) => (
                 <div
                   key={site.domain}
-                  className="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                  className="flex items-start justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
                 >
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 space-y-1">
                     <p className="text-sm font-medium text-gray-800 truncate">
                       {site.description || site.domain}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded font-mono truncate" title={site.domain}>
+                        {site.domain}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400">
                       Blocked {site.blockedCount} times
                     </p>
                   </div>
                   <button
                     onClick={() => removeDomain(site.domain)}
-                    className="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                    className="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded hover:bg-red-50 transition-colors ml-2 flex-shrink-0"
                   >
                     Remove
                   </button>

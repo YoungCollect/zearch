@@ -20,8 +20,8 @@ export interface ExtensionSettings {
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   isEnabled: true,
   blockedSites: [
-    // { domain: ".*\\.baidu\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "Baidu网站" },
-    // { domain: ".*\\.csdn\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "CSDN网站" }
+    // { domain: ".*\\.baidu\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "Baidu websites" },
+    // { domain: ".*\\.csdn\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "CSDN websites" }
   ],
   totalBlocked: 0,
   blockMode: 'hide',
@@ -74,7 +74,7 @@ export class StorageManager {
     })
   }
 
-  // 保存设置
+  // Save settings
   async saveSettings(newSettings: Partial<ExtensionSettings>): Promise<void> {
     return new Promise((resolve) => {
       this.settings = { ...this.settings, ...newSettings }
@@ -86,7 +86,7 @@ export class StorageManager {
     })
   }
 
-  // 获取当前设置
+  // Get current settings
   getSettings(): ExtensionSettings {
     return { ...this.settings }
   }
@@ -149,7 +149,7 @@ export class StorageManager {
     return true
   }
 
-  // 删除屏蔽网站
+  // Remove blocked site
   async removeBlockedSite(domain: string): Promise<void> {
     const newBlockedSites = this.settings.blockedSites.filter(
       site => site.domain !== domain
@@ -157,7 +157,7 @@ export class StorageManager {
     await this.saveSettings({ blockedSites: newBlockedSites })
   }
 
-  // 更新屏蔽统计
+  // Update blocking statistics
   async updateBlockStats(domain: string): Promise<void> {
     const siteIndex = this.settings.blockedSites.findIndex(
       site => site.domain === domain
@@ -178,7 +178,7 @@ export class StorageManager {
     }
   }
 
-  // 清除统计数据
+  // Clear statistics data
   async clearStats(): Promise<void> {
     const resetSites = this.settings.blockedSites.map(site => ({
       ...site,
@@ -192,34 +192,34 @@ export class StorageManager {
     })
   }
 
-  // 切换扩展状态
+  // Toggle extension state
   async toggleExtension(): Promise<boolean> {
     const newState = !this.settings.isEnabled
     await this.saveSettings({ isEnabled: newState })
     return newState
   }
 
-  // 设置屏蔽模式
+  // Set blocking mode
   async setBlockMode(mode: 'hide' | 'dim' | 'replace'): Promise<void> {
     await this.saveSettings({ blockMode: mode })
   }
 
-  // 设置搜索结果数量
+  // Set search results count
   async setSearchResultsPerPage(count: 10 | 20 | 50 | 100): Promise<void> {
     await this.saveSettings({ searchResultsPerPage: count })
   }
 
-  // 导出设置
+  // Export settings
   exportSettings(): string {
     return JSON.stringify(this.settings, null, 2)
   }
 
-  // 导入设置
+  // Import settings
   async importSettings(settingsJson: string): Promise<boolean> {
     try {
       const importedSettings = JSON.parse(settingsJson) as ExtensionSettings
       
-      // 验证导入的数据
+      // Validate imported data
       if (!importedSettings.blockedSites || !Array.isArray(importedSettings.blockedSites)) {
         throw new Error('Invalid settings format')
       }
@@ -232,12 +232,12 @@ export class StorageManager {
     }
   }
 
-  // 添加设置变化监听器
+  // Add settings change listener
   addListener(listener: (settings: ExtensionSettings) => void): void {
     this.listeners.push(listener)
   }
 
-  // 移除监听器
+  // Remove listener
   removeListener(listener: (settings: ExtensionSettings) => void): void {
     const index = this.listeners.indexOf(listener)
     if (index > -1) {
@@ -245,7 +245,7 @@ export class StorageManager {
     }
   }
 
-  // 通知所有监听器
+  // Notify all listeners
   private notifyListeners(): void {
     this.listeners.forEach(listener => {
       try {
@@ -256,7 +256,7 @@ export class StorageManager {
     })
   }
 
-  // 获取今日统计
+  // Get today's statistics
   getTodayStats(): { blocked: number, sites: number } {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -277,5 +277,5 @@ export class StorageManager {
   }
 }
 
-// 导出单例实例
+// Export singleton instance
 export const storageManager = StorageManager.getInstance()

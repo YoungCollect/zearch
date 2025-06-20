@@ -480,7 +480,7 @@ function IndexOptions() {
                 </svg>
                 <span className="font-semibold text-blue-800">Version</span>
               </div>
-              <p className="text-lg font-bold text-blue-700">v0.0.1</p>
+              <p className="text-sm font-medium text-blue-700">v0.0.1</p>
             </div>
             <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6 border border-emerald-200/50">
               <div className="flex items-center space-x-2 mb-2">
@@ -489,7 +489,7 @@ function IndexOptions() {
                 </svg>
                 <span className="font-semibold text-emerald-800">Developer</span>
               </div>
-              <p className="text-lg font-bold text-emerald-700">Andy</p>
+              <p className="text-sm font-medium text-emerald-700">Made with ❤️ by Andy</p>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200/50">
               <div className="flex items-center space-x-2 mb-2">
@@ -498,7 +498,7 @@ function IndexOptions() {
                 </svg>
                 <span className="font-semibold text-purple-800">Type</span>
               </div>
-              <p className="text-sm font-medium text-purple-700">Chrome Extension</p>
+              <p className="text-sm font-medium text-purple-700">Web Extension</p>
             </div>
           </div>
           <div className="mt-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200/50">

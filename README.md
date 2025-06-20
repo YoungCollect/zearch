@@ -149,8 +149,7 @@ src/
 │   └── storage.ts
 ├── popup.tsx         # Popup component
 ├── options.tsx       # Settings page
-├── background.ts     # Background script
-└── style.css        # Style files
+└── background.ts        # Background script
 ```
 
 ### Adding New Features
