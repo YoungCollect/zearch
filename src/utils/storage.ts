@@ -22,7 +22,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
     { domain: ".*\\.csdn\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "CSDN网站" }
   ],
   totalBlocked: 0,
-  blockMode: 'dim',
+  blockMode: 'hide',
   showNotifications: true,
   version: '0.0.1'
 }
