@@ -4,12 +4,12 @@
 
 /* 主题颜色变量 */
 :root {
-  /* 主要品牌色 */
-  --primary-color: #4e80ee;
-  --primary-hover: #3b6dd9;
-  --primary-light: #6b9eff;
-  --primary-lighter: #87b3ff;
-  --primary-lightest: #a3c7ff;
+  /* 主要品牌色 - 匹配logo颜色 */
+  --primary-color: #3370df;
+  --primary-hover: #2563eb;
+  --primary-light: #60a5fa;
+  --primary-lighter: #93c5fd;
+  --primary-lightest: #bfdbfe;
 
   /* 背景色 */
   --bg-primary: #ffffff;

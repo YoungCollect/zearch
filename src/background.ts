@@ -48,7 +48,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     }
 
     if (domain) {
-      // 过滤掉一些不应该屏蔽的域名
+      // Filter out domains that should not be blocked
       const excludedDomains = ['chrome://', 'chrome-extension://', 'moz-extension://', 'edge://', 'about:', 'file://']
       const isExcluded = excludedDomains.some(excluded => targetUrl.startsWith(excluded))
 
@@ -57,7 +57,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
           type: 'basic',
           iconUrl: 'assets/icon.png',
           title: 'Zearch',
-          message: '无法屏蔽系统页面或扩展页面'
+          message: 'Cannot block system pages or extension pages'
         })
         return
       }
@@ -121,24 +121,24 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   }
 })
 
-// Plasmo框架会自动注入content script，这里不需要手动注入
-// 只需要监听标签页更新来处理其他逻辑
+// Plasmo framework automatically injects content scripts, no manual injection needed here
+// Just listen for tab updates to handle other logic
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url) {
     try {
       const url = new URL(tab.url)
 
-      // 检查是否是Google搜索页面，发送消息给content script
+      // Check if it's a Google search page, send message to content script
       if (url.hostname.includes('google.') && url.pathname === '/search') {
-        // 延迟一点发送消息，确保content script已加载
+        // Delay sending message to ensure content script is loaded
         setTimeout(() => {
           chrome.tabs.sendMessage(tabId, {
             action: 'pageLoaded',
             url: tab.url
           }).catch((error) => {
-            // 忽略常见的错误，避免控制台警告
+            // Ignore common errors to avoid console warnings
             if (chrome.runtime.lastError) {
-              // 清除lastError
+              // Clear lastError
               chrome.runtime.lastError
             }
           })
@@ -150,16 +150,16 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 })
 
-// 处理扩展图标点击
+// Handle extension icon click
 chrome.action.onClicked.addListener((tab) => {
-  // 打开popup（这通常由manifest自动处理，但可以在这里添加额外逻辑）
+  // Open popup (usually handled automatically by manifest, but can add extra logic here)
   console.log('Zearch: Extension icon clicked')
 })
 
-// 监听存储变化，同步到所有标签页
+// Listen for storage changes, sync to all tabs
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync') {
-    // 通知所有Google搜索标签页设置已更改
+    // Notify all Google search tabs that settings have changed
     chrome.tabs.query({ url: '*://www.google.com/search*' }, (tabs) => {
       if (tabs && tabs.length > 0) {
         tabs.forEach(tab => {
@@ -168,7 +168,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
               action: 'settingsChanged',
               changes
             }).catch((error) => {
-              // 忽略常见的错误，避免控制台警告
+              // Ignore common errors to avoid console warnings
               if (chrome.runtime.lastError) {
                 chrome.runtime.lastError
               }
@@ -178,7 +178,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
       }
     })
 
-    // 也查询其他Google域名
+    // Also query other Google domains
     const googleDomains = [
       '*://www.google.co.uk/search*',
       '*://www.google.ca/search*',

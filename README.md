@@ -1,207 +1,207 @@
-# Zearch - 智能搜索结果屏蔽器
+# Zearch - Intelligent Search Result Blocker
 
-一个强大的Chrome扩展，用于屏蔽Google搜索结果中的特定网站，提升你的搜索体验。
+A powerful Chrome extension for blocking specific websites from Google search results, enhancing your search experience.
 
-## ✨ 功能特性
+## ✨ Features
 
-- 🚫 **智能屏蔽**: 自动屏蔽指定域名的搜索结果
-- 🎯 **智能匹配**: 自动生成正则表达式，匹配主域名及所有子域名
-- 🎨 **多种屏蔽模式**: 支持完全隐藏、变暗显示、替换提示三种模式
-- 📊 **统计分析**: 实时统计屏蔽数据，了解屏蔽效果
-- ⚙️ **灵活配置**: 自定义屏蔽列表，个性化设置
-- 💾 **数据同步**: 使用Chrome同步存储，多设备数据一致
-- 🔄 **实时更新**: 动态监听页面变化，支持无限滚动
-- 🎯 **右键快捷**: 右键链接快速添加到屏蔽列表
-- 📱 **响应式UI**: 现代化界面设计，支持各种屏幕尺寸
-- 🌍 **多域名支持**: 支持全球各地的Google搜索域名
+- 🚫 **Smart Blocking**: Automatically block search results from specified domains
+- 🎯 **Intelligent Matching**: Auto-generate regex patterns to match main domains and all subdomains
+- 🎨 **Multiple Blocking Modes**: Support for complete hide, dim display, and replace notification modes
+- 📊 **Statistical Analysis**: Real-time blocking statistics to understand blocking effectiveness
+- ⚙️ **Flexible Configuration**: Customize blocking lists with personalized settings
+- 💾 **Data Synchronization**: Use Chrome sync storage for consistent data across devices
+- 🔄 **Real-time Updates**: Dynamic page monitoring with infinite scroll support
+- 🎯 **Right-click Shortcuts**: Quick add to blocking list via right-click on links
+- 📱 **Responsive UI**: Modern interface design supporting various screen sizes
+- 🌍 **Multi-domain Support**: Support for Google search domains worldwide
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 安装依赖
+### Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-### 开发模式
+### Development Mode
 
 ```bash
 pnpm dev
 ```
 
-### 构建扩展
+### Build Extension
 
 ```bash
 pnpm build
 ```
 
-### 打包发布
+### Package for Release
 
 ```bash
 pnpm package
 ```
 
-## 📦 安装扩展
+## 📦 Install Extension
 
-1. 运行 `pnpm build` 构建扩展
-2. 打开Chrome浏览器，进入 `chrome://extensions/`
-3. 开启"开发者模式"
-4. 点击"加载已解压的扩展程序"
-5. 选择 `build/chrome-mv3-prod` 文件夹
+1. Run `pnpm build` to build the extension
+2. Open Chrome browser and go to `chrome://extensions/`
+3. Enable "Developer mode"
+4. Click "Load unpacked extension"
+5. Select the `build/chrome-mv3-prod` folder
 
-## 🎯 使用方法
+## 🎯 Usage
 
-### 基本使用
+### Basic Usage
 
-1. **启用扩展**: 点击扩展图标，确保开关处于开启状态
-2. **添加屏蔽网站**: 在弹窗中输入要屏蔽的域名（如：csdn.net），点击"添加"
-3. **智能匹配**: 系统会自动生成正则表达式，匹配该域名及所有子域名
-4. **搜索测试**: 在Google中搜索，被屏蔽的网站将根据设置的模式显示
+1. **Enable Extension**: Click the extension icon and ensure the toggle is on
+2. **Add Blocked Websites**: Enter the domain to block in the popup (e.g., csdn.net), click "Add"
+3. **Smart Matching**: The system automatically generates regex patterns to match the domain and all subdomains
+4. **Search Testing**: Search on Google, blocked websites will display according to the set mode
 
-### 高级功能
+### Advanced Features
 
-- **右键屏蔽**: 在搜索结果页面右键点击链接，选择"屏蔽此域名"
-- **批量管理**: 在设置页面管理所有屏蔽网站
-- **数据导入导出**: 备份和恢复你的设置
-- **统计查看**: 查看屏蔽效果统计
+- **Right-click Blocking**: Right-click links on search result pages and select "Block this domain"
+- **Bulk Management**: Manage all blocked websites in the settings page
+- **Data Import/Export**: Backup and restore your settings
+- **Statistics View**: View blocking effectiveness statistics
 
-## ⚙️ 配置选项
+## ⚙️ Configuration Options
 
-### 屏蔽模式
+### Blocking Modes
 
-- **完全隐藏**: 完全移除屏蔽的搜索结果
-- **变暗显示**: 保留结果但降低透明度和饱和度
-- **替换提示**: 用屏蔽提示替换原始内容
+- **Complete Hide**: Completely remove blocked search results
+- **Dim Display**: Keep results but reduce opacity and saturation
+- **Replace Notification**: Replace original content with blocking notification
 
-### 其他设置
+### Other Settings
 
-- **显示通知**: 屏蔽网站时显示通知
-- **统计数据**: 查看和清除屏蔽统计
-- **数据管理**: 导入/导出设置，重置配置
+- **Show Notifications**: Display notifications when blocking websites
+- **Statistics Data**: View and clear blocking statistics
+- **Data Management**: Import/export settings, reset configuration
 
-## 🧪 测试
+## 🧪 Testing
 
-### 自动测试
+### Automated Testing
 
-在浏览器控制台中运行测试脚本：
+Run test scripts in browser console:
 
 ```javascript
-// 加载测试脚本
+// Load test script
 const script = document.createElement('script');
 script.src = chrome.runtime.getURL('test-extension.js');
 document.head.appendChild(script);
 
-// 运行所有测试
+// Run all tests
 ZearchTests.runAllTests();
 ```
 
-### 手动测试
+### Manual Testing
 
-1. **功能测试**:
-   - 添加/删除屏蔽网站
-   - 切换屏蔽模式
-   - 验证统计数据
+1. **Functionality Testing**:
+   - Add/remove blocked websites
+   - Switch blocking modes
+   - Verify statistics data
 
-2. **兼容性测试**:
-   - 不同Google域名 (google.com, google.co.uk等)
-   - 各种搜索结果类型
-   - 动态加载内容
+2. **Compatibility Testing**:
+   - Different Google domains (google.com, google.co.uk, etc.)
+   - Various search result types
+   - Dynamic loading content
 
-3. **性能测试**:
-   - 大量搜索结果页面
-   - 频繁滚动加载
-   - 多标签页同时使用
+3. **Performance Testing**:
+   - Large search result pages
+   - Frequent scroll loading
+   - Multiple tabs simultaneous use
 
-## 🛠️ 技术架构
+## 🛠️ Technical Architecture
 
-### 核心组件
+### Core Components
 
-- **Content Script** (`src/contents/block-site.ts`): 主要屏蔽逻辑
-- **Popup** (`src/popup.tsx`): 扩展弹窗界面
-- **Options** (`src/options.tsx`): 设置页面
-- **Background** (`src/background.ts`): 后台服务
-- **Storage** (`src/utils/storage.ts`): 数据存储管理
+- **Content Script** (`src/contents/block-site.ts`): Main blocking logic
+- **Popup** (`src/popup.tsx`): Extension popup interface
+- **Options** (`src/options.tsx`): Settings page
+- **Background** (`src/background.ts`): Background service
+- **Storage** (`src/utils/storage.ts`): Data storage management
 
-### 技术栈
+### Technology Stack
 
-- **框架**: React + TypeScript
-- **构建工具**: Plasmo
-- **样式**: Tailwind CSS
-- **存储**: Chrome Storage API
-- **权限**: tabs, storage, contextMenus, notifications, scripting
+- **Framework**: React + TypeScript
+- **Build Tool**: Plasmo
+- **Styling**: Tailwind CSS
+- **Storage**: Chrome Storage API
+- **Permissions**: tabs, storage, contextMenus, notifications, scripting
 
-## 📊 性能优化
+## 📊 Performance Optimization
 
-- **防抖处理**: 避免频繁执行屏蔽逻辑
-- **选择器优化**: 使用高效的DOM选择器
-- **内存管理**: 及时清理事件监听器
-- **异步处理**: 非阻塞的数据存储操作
+- **Debounce Processing**: Avoid frequent execution of blocking logic
+- **Selector Optimization**: Use efficient DOM selectors
+- **Memory Management**: Timely cleanup of event listeners
+- **Asynchronous Processing**: Non-blocking data storage operations
 
-## 🔧 开发指南
+## 🔧 Development Guide
 
-### 项目结构
+### Project Structure
 
 ```
 src/
-├── contents/          # 内容脚本
+├── contents/          # Content scripts
 │   └── block-site.ts
-├── utils/            # 工具函数
+├── utils/            # Utility functions
 │   └── storage.ts
-├── popup.tsx         # 弹窗组件
-├── options.tsx       # 设置页面
-├── background.ts     # 后台脚本
-└── style.css        # 样式文件
+├── popup.tsx         # Popup component
+├── options.tsx       # Settings page
+├── background.ts     # Background script
+└── style.css        # Style files
 ```
 
-### 添加新功能
+### Adding New Features
 
-1. 在相应组件中添加UI
-2. 在storage.ts中添加数据结构
-3. 在content script中实现逻辑
-4. 更新权限配置
+1. Add UI in corresponding components
+2. Add data structures in storage.ts
+3. Implement logic in content script
+4. Update permission configuration
 
-## 🐛 故障排除
+## 🐛 Troubleshooting
 
-### 常见问题
+### Common Issues
 
-1. **扩展不工作**:
-   - 检查是否启用扩展
-   - 确认在Google搜索页面
-   - 查看控制台错误信息
+1. **Extension Not Working**:
+   - Check if extension is enabled
+   - Confirm you're on Google search page
+   - Check console for error messages
 
-2. **屏蔽不生效**:
-   - 验证域名格式正确
-   - 检查屏蔽模式设置
-   - 刷新页面重试
+2. **Blocking Not Effective**:
+   - Verify domain format is correct
+   - Check blocking mode settings
+   - Refresh page and retry
 
-3. **数据丢失**:
-   - 检查Chrome同步设置
-   - 尝试导入备份数据
-   - 重新安装扩展
+3. **Data Loss**:
+   - Check Chrome sync settings
+   - Try importing backup data
+   - Reinstall extension
 
-### 调试技巧
+### Debugging Tips
 
-- 使用Chrome开发者工具
-- 查看扩展管理页面的错误
-- 在控制台运行测试脚本
+- Use Chrome Developer Tools
+- Check extension management page for errors
+- Run test scripts in console
 
-## 📝 更新日志
+## 📝 Changelog
 
-### v0.0.1 (当前版本)
-- ✨ 初始版本发布
-- 🚫 基础屏蔽功能
-- 🎨 多种屏蔽模式
-- 📊 统计功能
-- ⚙️ 设置页面
+### v0.0.1 (Current Version)
+- ✨ Initial release
+- 🚫 Basic blocking functionality
+- 🎨 Multiple blocking modes
+- 📊 Statistics feature
+- ⚙️ Settings page
 
-## 🤝 贡献
+## 🤝 Contributing
 
-欢迎提交Issue和Pull Request！
+Issues and Pull Requests are welcome!
 
-## 📄 许可证
+## 📄 License
 
 MIT License
 
-## 👨‍💻 作者
+## 👨‍💻 Author
 
-Andy - 专注于提升搜索体验的开发者
+Andy - Developer focused on improving search experience

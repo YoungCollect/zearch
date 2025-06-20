@@ -22,20 +22,20 @@ export const config: PlasmoCSConfig = {
 
 import { storageManager, type ExtensionSettings } from "../utils/storage"
 
-// 当前设置
+// Current settings
 let settings: ExtensionSettings | null = null
 
-// 通知防抖
+// Notification debouncing
 let notificationTimeout: NodeJS.Timeout | null = null
 let pendingNotifications: { [key: string]: number } = {}
 
-// 初始化
+// Initialize
 async function initialize() {
   try {
     settings = await storageManager.loadSettings()
     console.log('Zearch: Settings loaded', settings)
 
-    // 如果启用，开始屏蔽
+    // If enabled, start blocking
     if (settings.isEnabled) {
       initializeBlocking()
     }
@@ -44,7 +44,7 @@ async function initialize() {
   }
 }
 
-// 监听来自popup和background的消息
+// Listen for messages from popup and background
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'toggleBlocking') {
     if (settings) {
@@ -57,27 +57,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     }
   } else if (message.action === 'pageLoaded') {
-    // 页面加载完成，重新初始化
+    // Page loaded, reinitialize
     if (settings && settings.isEnabled) {
       setTimeout(() => {
         blockSites()
       }, 500)
     }
   } else if (message.action === 'settingsChanged') {
-    // 设置发生变化，重新加载设置
+    // Settings changed, reload settings
     initialize()
   }
 })
 
-// 检查是否为UI元素（避免处理Chrome底部导航等）
+// Check if element is UI element (avoid processing Chrome bottom navigation etc.)
 function isUIElement(element: Element): boolean {
-  // 检查是否在搜索结果区域外
+  // Check if outside search results area
   const searchContainer = document.querySelector('#search, #rso, .srg')
   if (searchContainer && !searchContainer.contains(element)) {
     return true
   }
 
-  // 检查是否为导航、分页等UI元素
+  // Check if navigation, pagination or other UI elements
   const uiSelectors = [
     '[role="navigation"]',
     '.paging',
@@ -85,9 +85,9 @@ function isUIElement(element: Element): boolean {
     '#bottomads',
     '.commercial-unit-desktop-top',
     '.commercial-unit-desktop-rhs',
-    '[data-ved][aria-label*="页面"]',
-    '[data-ved][aria-label*="下一页"]',
-    '[data-ved][aria-label*="上一页"]'
+    '[data-ved][aria-label*="page"]',
+    '[data-ved][aria-label*="next"]',
+    '[data-ved][aria-label*="previous"]'
   ]
 
   for (const selector of uiSelectors) {
@@ -96,9 +96,9 @@ function isUIElement(element: Element): boolean {
     }
   }
 
-  // 检查是否包含分页相关文本
+  // Check if contains pagination related text
   const text = element.textContent?.toLowerCase() || ''
-  const paginationKeywords = ['下一页', 'next', '上一页', 'previous', '页面', 'page']
+  const paginationKeywords = ['next', 'previous', 'page']
   if (paginationKeywords.some(keyword => text.includes(keyword)) && text.length < 50) {
     return true
   }
@@ -106,10 +106,10 @@ function isUIElement(element: Element): boolean {
   return false
 }
 
-// 启动初始化
+// Start initialization
 initialize()
 
-// 防抖函数，避免频繁执行
+// Debounce function to avoid frequent execution
 function debounce(func: Function, wait: number) {
   let timeout: NodeJS.Timeout;
   return function executedFunction(...args: any[]) {
@@ -122,13 +122,13 @@ function debounce(func: Function, wait: number) {
   };
 }
 
-// 创建屏蔽提示元素
+// Create blocked indicator element
 function createBlockedIndicator(domain: string): HTMLElement {
   const indicator = document.createElement('div')
   indicator.className = 'zearch-blocked-indicator'
 
   const hideButton = document.createElement('button')
-  hideButton.textContent = '隐藏'
+  hideButton.textContent = 'Hide'
   hideButton.style.cssText = `
     background: rgba(255,255,255,0.2);
     border: none;
@@ -140,11 +140,11 @@ function createBlockedIndicator(domain: string): HTMLElement {
     margin-left: auto;
   `
 
-  // 添加点击事件处理
+  // Add click event handler
   hideButton.addEventListener('click', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    // 隐藏整个搜索结果项
+    // Hide the entire search result item
     const resultElement = indicator.closest('[data-zearch-blocked]')
     if (resultElement) {
       resultElement.style.display = 'none'
@@ -171,7 +171,7 @@ function createBlockedIndicator(domain: string): HTMLElement {
   icon.style.fontSize = '14px'
 
   const text = document.createElement('span')
-  text.textContent = `已屏蔽 ${domain}`
+  text.textContent = `Blocked ${domain}`
 
   container.appendChild(icon)
   container.appendChild(text)
@@ -181,7 +181,7 @@ function createBlockedIndicator(domain: string): HTMLElement {
   return indicator
 }
 
-// 应用不同的屏蔽模式
+// Apply different blocking modes
 function applyBlockMode(element: Element, domain: string, mode: 'hide' | 'dim' | 'replace') {
   switch (mode) {
     case 'hide':
@@ -194,17 +194,17 @@ function applyBlockMode(element: Element, domain: string, mode: 'hide' | 'dim' |
       element.style.transform = 'scale(0.95)'
       element.style.filter = 'grayscale(100%)'
 
-      // 添加屏蔽提示
+      // Add blocking indicator
       const dimIndicator = createBlockedIndicator(domain)
       element.insertBefore(dimIndicator, element.firstChild)
       break
 
     case 'replace':
-      // 保存原始内容
+      // Save original content
       const originalContent = element.innerHTML
       element.setAttribute('data-zearch-original', originalContent)
 
-      // 创建替换内容
+      // Create replacement content
       const replaceContainer = document.createElement('div')
       replaceContainer.style.cssText = `
         background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
@@ -221,7 +221,7 @@ function applyBlockMode(element: Element, domain: string, mode: 'hide' | 'dim' |
       icon.style.cssText = 'font-size: 24px; margin-bottom: 8px;'
 
       const title = document.createElement('div')
-      title.textContent = '已屏蔽网站'
+      title.textContent = 'Blocked Website'
       title.style.cssText = 'font-weight: 600; margin-bottom: 4px;'
 
       const domainText = document.createElement('div')
@@ -229,7 +229,7 @@ function applyBlockMode(element: Element, domain: string, mode: 'hide' | 'dim' |
       domainText.style.cssText = 'font-size: 14px; margin-bottom: 12px;'
 
       const showButton = document.createElement('button')
-      showButton.textContent = '显示内容'
+      showButton.textContent = 'Show Content'
       showButton.style.cssText = `
         background: #3b82f6;
         color: white;
@@ -240,7 +240,7 @@ function applyBlockMode(element: Element, domain: string, mode: 'hide' | 'dim' |
         cursor: pointer;
       `
 
-      // 添加点击事件处理
+      // Add click event handler
       showButton.addEventListener('click', (e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -257,14 +257,14 @@ function applyBlockMode(element: Element, domain: string, mode: 'hide' | 'dim' |
       replaceContainer.appendChild(domainText)
       replaceContainer.appendChild(showButton)
 
-      // 替换内容
+      // Replace content
       element.innerHTML = ''
       element.appendChild(replaceContainer)
       break
   }
 }
 
-// 更新统计数据
+// Update statistics
 async function updateStats(domain: string) {
   try {
     await storageManager.updateBlockStats(domain)
@@ -273,24 +273,24 @@ async function updateStats(domain: string) {
   }
 }
 
-// 屏蔽函数
+// Blocking function
 function blockSites() {
   if (!settings || !settings.isEnabled) return
 
-  // 使用更精确的选择器来匹配Google搜索结果，避免选择到Chrome UI
+  // Use more precise selectors to match Google search results, avoiding Chrome UI
   const selectors = [
-    '#search .g', // 主要搜索结果
-    '#search div[data-hveid]', // 新的搜索结果容器
-    '#rso .g', // 搜索结果组中的结果
-    '#rso > div > div', // 搜索结果的直接子元素
-    '.srg > .g', // 搜索结果组中的结果
-    '.rc', // 结果容器
-    '[data-ved][jsaction*="click"]' // 带有特定属性的可点击元素
+    '#search .g', // Main search results
+    '#search div[data-hveid]', // New search result containers
+    '#rso .g', // Results in search result groups
+    '#rso > div > div', // Direct children of search results
+    '.srg > .g', // Results in search result groups
+    '.rc', // Result containers
+    '[data-ved][jsaction*="click"]' // Elements with specific attributes
   ];
 
   let results: NodeListOf<Element> | null = null;
 
-  // 尝试不同的选择器
+  // Try different selectors
   for (const selector of selectors) {
     results = document.querySelectorAll(selector);
     if (results.length > 0) break;
@@ -301,10 +301,10 @@ function blockSites() {
   let blockedCount = 0
 
   results.forEach(result => {
-    // 检查是否已经被处理过
+    // Check if already processed
     if (result.hasAttribute('data-zearch-processed')) return;
 
-    // 过滤掉Chrome UI元素和非搜索结果元素
+    // Filter out Chrome UI elements and non-search result elements
     if (isUIElement(result)) return;
 
     result.setAttribute('data-zearch-processed', 'true')
@@ -316,14 +316,14 @@ function blockSites() {
     if (!url) return;
 
     try {
-      // 更精确的域名匹配
+      // More precise domain matching
       const urlObj = new URL(url, window.location.origin);
       const hostname = urlObj.hostname.toLowerCase();
 
       for (const site of settings.blockedSites) {
         let shouldBlock = false
 
-        // 默认所有规则都是正则表达式
+        // All rules are regex by default
         try {
           const regex = new RegExp(site.domain, 'i')
           shouldBlock = regex.test(hostname)
@@ -333,14 +333,14 @@ function blockSites() {
         }
 
         if (shouldBlock) {
-          // 根据屏蔽模式应用不同的处理
+          // Apply different handling based on blocking mode
           const displayName = site.description || site.domain
           applyBlockMode(result, displayName, settings.blockMode)
 
-          // 标记为已屏蔽
+          // Mark as blocked
           result.setAttribute('data-zearch-blocked', site.domain)
 
-          // 更新统计
+          // Update statistics
           updateStats(site.domain)
           blockedCount++
 
@@ -356,9 +356,9 @@ function blockSites() {
   if (blockedCount > 0) {
     console.log(`Zearch: Blocked ${blockedCount} results`)
 
-    // 发送通知消息到background script (使用防抖)
+    // Send notification message to background script (using debounce)
     if (settings.showNotifications) {
-      // 累积通知数据
+      // Accumulate notification data
       const blockedElements = document.querySelectorAll('[data-zearch-blocked]')
       blockedElements.forEach(element => {
         const domain = element.getAttribute('data-zearch-blocked')
@@ -369,20 +369,20 @@ function blockSites() {
         }
       })
 
-      // 清除之前的定时器
+      // Clear previous timer
       if (notificationTimeout) {
         clearTimeout(notificationTimeout)
       }
 
-      // 设置新的定时器，延迟发送通知
+      // Set new timer, delay sending notification
       notificationTimeout = setTimeout(() => {
         const totalBlocked = Object.values(pendingNotifications).reduce((sum, count) => sum + count, 0)
         const domains = Object.keys(pendingNotifications)
 
         if (totalBlocked > 0) {
           const message = domains.length === 1
-            ? `已屏蔽 ${totalBlocked} 个来自 ${domains[0]} 的搜索结果`
-            : `已屏蔽 ${totalBlocked} 个来自 ${domains.length} 个网站的搜索结果`
+            ? `Blocked ${totalBlocked} search results from ${domains[0]}`
+            : `Blocked ${totalBlocked} search results from ${domains.length} websites`
 
           chrome.runtime.sendMessage({
             action: 'showNotification',
@@ -390,46 +390,46 @@ function blockSites() {
             count: totalBlocked,
             message: message
           }).catch((error) => {
-            // 忽略常见的错误，避免控制台警告
+            // Ignore common errors to avoid console warnings
             if (chrome.runtime.lastError) {
               chrome.runtime.lastError
             }
           })
         }
 
-        // 清空待发送通知
+        // Clear pending notifications
         pendingNotifications = {}
-      }, 1000) // 1秒后发送通知
+      }, 1000) // Send notification after 1 second
     }
   }
 }
 
-// 使用防抖的blockSites函数
+// Debounced blockSites function
 const debouncedBlockSites = debounce(blockSites, 150);
 
-// 清理函数
+// Cleanup function
 function cleanup() {
-  // 移除所有屏蔽标记和样式
+  // Remove all blocking marks and styles
   const blockedElements = document.querySelectorAll('[data-zearch-blocked]')
   blockedElements.forEach(element => {
     element.removeAttribute('data-zearch-blocked')
     element.removeAttribute('data-zearch-processed')
 
-    // 恢复样式
+    // Restore styles
     element.style.display = ''
     element.style.opacity = ''
     element.style.transform = ''
     element.style.filter = ''
     element.style.transition = ''
 
-    // 恢复替换模式的原始内容
+    // Restore original content for replace mode
     const originalContent = element.getAttribute('data-zearch-original')
     if (originalContent) {
       element.innerHTML = originalContent
       element.removeAttribute('data-zearch-original')
     }
 
-    // 移除屏蔽提示
+    // Remove blocking indicators
     const indicator = element.querySelector('.zearch-blocked-indicator')
     if (indicator) {
       indicator.remove()
@@ -439,20 +439,20 @@ function cleanup() {
   console.log('Zearch: Cleanup completed')
 }
 
-// 初始化屏蔽功能
+// Initialize blocking functionality
 function initializeBlocking() {
   console.log('Zearch: Initializing blocking...')
 
-  // 初始执行
+  // Initial execution
   setTimeout(blockSites, 100)
 
-  // 防止 Google 动态加载时漏掉，监听 DOM 变化
+  // Prevent missing Google dynamic loading, listen for DOM changes
   if (window.zearchObserver) {
     window.zearchObserver.disconnect()
   }
 
   window.zearchObserver = new MutationObserver((mutations) => {
-    // 检查是否有新的搜索结果被添加
+    // Check if new search results are added
     const hasNewResults = mutations.some(mutation => {
       return Array.from(mutation.addedNodes).some(node => {
         if (node.nodeType === Node.ELEMENT_NODE) {
@@ -482,7 +482,7 @@ function initializeBlocking() {
     subtree: true
   });
 
-  // 监听页面滚动，处理懒加载的内容
+  // Listen for page scrolling to handle lazy-loaded content
   if (window.zearchScrollHandler) {
     document.removeEventListener('scroll', window.zearchScrollHandler)
   }
@@ -495,7 +495,7 @@ function initializeBlocking() {
 
   document.addEventListener('scroll', window.zearchScrollHandler)
 
-  // 监听页面可见性变化
+  // Listen for page visibility changes
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && settings && settings.isEnabled) {
       setTimeout(blockSites, 100)
@@ -503,7 +503,7 @@ function initializeBlocking() {
   })
 }
 
-// 扩展全局对象以避免类型错误
+// Extend global object to avoid type errors
 declare global {
   interface Window {
     zearchObserver?: MutationObserver

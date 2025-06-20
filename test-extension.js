@@ -1,13 +1,13 @@
-// 测试脚本 - 在浏览器控制台中运行以测试扩展功能
+// Test script - Run in browser console to test extension functionality
 
 console.log('🧪 Zearch Extension Test Suite');
 
-// 测试存储功能
+// Test storage functionality
 async function testStorage() {
   console.log('📦 Testing Storage...');
-  
+
   try {
-    // 测试保存设置
+    // Test saving settings
     const testSettings = {
       isEnabled: true,
       blockedSites: [
@@ -18,19 +18,19 @@ async function testStorage() {
       showNotifications: true,
       version: '0.0.1'
     };
-    
+
     chrome.storage.sync.set(testSettings, () => {
       console.log('✅ Settings saved successfully');
-      
-      // 测试读取设置
+
+      // Test reading settings
       chrome.storage.sync.get(Object.keys(testSettings), (result) => {
         console.log('✅ Settings loaded:', result);
-        
-        // 验证数据完整性
+
+        // Verify data integrity
         const isValid = result.isEnabled === testSettings.isEnabled &&
                        result.blockedSites.length === testSettings.blockedSites.length &&
                        result.totalBlocked === testSettings.totalBlocked;
-        
+
         if (isValid) {
           console.log('✅ Storage test passed');
         } else {
@@ -43,10 +43,10 @@ async function testStorage() {
   }
 }
 
-// 测试DOM选择器
+// Test DOM selectors
 function testSelectors() {
   console.log('🎯 Testing DOM Selectors...');
-  
+
   const selectors = [
     'div.g',
     'div[data-hveid]',
@@ -57,9 +57,9 @@ function testSelectors() {
     '.srg > div',
     '.rc'
   ];
-  
+
   let foundResults = 0;
-  
+
   selectors.forEach(selector => {
     const elements = document.querySelectorAll(selector);
     if (elements.length > 0) {
@@ -69,7 +69,7 @@ function testSelectors() {
       console.log(`⚠️  No elements found with selector: ${selector}`);
     }
   });
-  
+
   if (foundResults > 0) {
     console.log(`✅ Selector test passed - found ${foundResults} total elements`);
   } else {
@@ -205,21 +205,21 @@ function testDebounce() {
   }, 200);
 }
 
-// 运行所有测试
+// Run all tests
 function runAllTests() {
   console.log('🚀 Starting Zearch Extension Tests...\n');
-  
+
   testStorage();
   testSelectors();
   testUrlParsing();
   testDomainMatching();
   testPerformance();
   testDebounce();
-  
+
   console.log('\n✨ All tests completed! Check results above.');
 }
 
-// 导出测试函数
+// Export test functions
 window.ZearchTests = {
   runAllTests,
   testStorage,

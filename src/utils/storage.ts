@@ -20,8 +20,8 @@ export interface ExtensionSettings {
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   isEnabled: true,
   blockedSites: [
-    { domain: ".*\\.baidu\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "Baidu网站" },
-    { domain: ".*\\.csdn\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "CSDN网站" }
+    // { domain: ".*\\.baidu\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "Baidu网站" },
+    // { domain: ".*\\.csdn\\..*", blockedCount: 0, addedAt: Date.now(), isRegex: true, description: "CSDN网站" }
   ],
   totalBlocked: 0,
   blockMode: 'hide',
@@ -46,22 +46,22 @@ export class StorageManager {
     return StorageManager.instance
   }
 
-  // 加载设置
+  // Load settings
   async loadSettings(): Promise<ExtensionSettings> {
     return new Promise((resolve) => {
       chrome.storage.sync.get(['settings'], (result) => {
-        // 如果存储中有settings对象，使用它；否则使用默认设置
+        // If settings object exists in storage, use it; otherwise use default settings
         const storedSettings = result.settings || {}
 
-        // 合并默认设置和存储的设置
+        // Merge default settings with stored settings
         this.settings = {
           ...DEFAULT_SETTINGS,
           ...storedSettings,
-          // 确保blockedSites是数组
+          // Ensure blockedSites is an array
           blockedSites: storedSettings.blockedSites || DEFAULT_SETTINGS.blockedSites
         }
 
-        // 数据迁移：为旧数据添加新字段
+        // Data migration: add new fields to old data
         this.settings.blockedSites = this.settings.blockedSites.map(site => ({
           ...site,
           addedAt: site.addedAt || Date.now()
@@ -91,44 +91,44 @@ export class StorageManager {
     return { ...this.settings }
   }
 
-  // 生成网站的正则表达式
+  // Generate regex for website
   generateSiteRegex(input: string): { regex: string, description: string } {
     const trimmed = input.toLowerCase().trim()
 
-    // 如果输入已经是正则表达式格式，直接返回
+    // If input is already in regex format, return directly
     if (trimmed.includes('.*') || trimmed.includes('\\')) {
-      return { regex: trimmed, description: `自定义正则: ${trimmed}` }
+      return { regex: trimmed, description: `Custom regex: ${trimmed}` }
     }
 
-    // 移除协议和路径
+    // Remove protocol and path
     let domain = trimmed.replace(/^https?:\/\//, '').replace(/\/.*$/, '')
 
-    // 移除www前缀
+    // Remove www prefix
     domain = domain.replace(/^www\./, '')
 
-    // 转义特殊字符
+    // Escape special characters
     const escapedDomain = domain.replace(/\./g, '\\.')
 
-    // 生成正则表达式：匹配任何子域名和该域名
+    // Generate regex: match any subdomain and the domain itself
     const regex = `.*\\.${escapedDomain}.*|^${escapedDomain}$`
 
     return {
       regex,
-      description: `${domain}及其子域名`
+      description: `${domain} and its subdomains`
     }
   }
 
-  // 添加屏蔽网站 (默认使用正则)
+  // Add blocked site (use regex by default)
   async addBlockedSite(input: string, description?: string): Promise<boolean> {
     const { regex, description: autoDesc } = this.generateSiteRegex(input)
     const finalDescription = description || autoDesc
 
-    // 检查是否已存在
+    // Check if already exists
     if (this.settings.blockedSites.some(site => site.domain === regex)) {
       return false
     }
 
-    // 验证正则表达式有效性
+    // Validate regex pattern
     try {
       new RegExp(regex)
     } catch (error) {

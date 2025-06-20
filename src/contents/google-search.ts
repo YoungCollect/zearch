@@ -5,7 +5,7 @@ export const config: PlasmoCSConfig = {
   run_at: "document_start"
 }
 
-// 获取存储的设置
+// Get stored settings
 async function getSettings() {
   return new Promise((resolve) => {
     chrome.storage.sync.get(['settings'], (result) => {
@@ -15,27 +15,27 @@ async function getSettings() {
   })
 }
 
-// 处理搜索结果数量
+// Handle search results count
 async function handleSearchResultsCount() {
   try {
     const settings: any = await getSettings()
     const targetNum = settings.searchResultsPerPage || 10
-    
+
     const url = new URL(window.location.href)
     const currentNum = url.searchParams.get('num')
-    
+
     console.log('Google Search - Current num:', currentNum, 'Target num:', targetNum)
-    
-    // 如果当前数量与设置不符，则修改 URL
+
+    // If current count doesn't match settings, modify URL
     if (currentNum !== targetNum.toString()) {
       url.searchParams.set('num', targetNum.toString())
-      
-      // 使用 history.replaceState 避免重定向循环
+
+      // Use history.replaceState to avoid redirect loops
       if (url.href !== window.location.href) {
         console.log('Updating URL to:', url.href)
         window.history.replaceState({}, '', url.href)
-        
-        // 重新加载页面以应用新的搜索结果数量
+
+        // Reload page to apply new search results count
         window.location.reload()
       }
     }
@@ -44,7 +44,7 @@ async function handleSearchResultsCount() {
   }
 }
 
-// 监听存储变化
+// Listen for storage changes
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync' && changes.settings) {
     console.log('Settings changed, reprocessing search results')
@@ -52,10 +52,10 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 })
 
-// 初始化
+// Initialize
 handleSearchResultsCount()
 
-// 监听 Google 的 AJAX 导航
+// Listen for Google AJAX navigation
 let lastUrl = location.href
 const observer = new MutationObserver(() => {
   const url = location.href
@@ -66,7 +66,7 @@ const observer = new MutationObserver(() => {
   }
 })
 
-// 等待页面加载完成后开始观察
+// Wait for page load completion before starting observation
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     observer.observe(document, { subtree: true, childList: true })
