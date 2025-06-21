@@ -290,13 +290,13 @@ function blockSites() {
 
   // Use more precise selectors to match Google search results, avoiding Chrome UI
   const selectors = [
-    '#search .g', // Main search results
-    '#search div[data-hveid]', // New search result containers
-    '#rso .g', // Results in search result groups
-    '#rso > div > div', // Direct children of search results
-    '.srg > .g', // Results in search result groups
-    '.rc', // Result containers
-    '[data-ved][jsaction*="click"]' // Elements with specific attributes
+    // '#search .g', // Main search results
+    '#search div[data-hveid][data-ved]', // New search result containers
+    // '#rso .g', // Results in search result groups
+    // '#rso > div > div', // Direct children of search results
+    // '.srg > .g', // Results in search result groups
+    // '.rc', // Result containers
+    // '[data-ved][jsaction*="click"]' // Elements with specific attributes
   ];
 
   let results: NodeListOf<Element> | null = null;
@@ -306,6 +306,20 @@ function blockSites() {
     results = document.querySelectorAll(selector);
     if (results.length > 0) break;
   }
+
+  results = [...results]
+  // Add data-blocked attribute to [data-rpos]
+  const rposElements = document.querySelectorAll('[data-rpos]')
+  results = (rposElements && rposElements.length > 0) ? results.concat([...rposElements]) : results;
+
+  // Ignore rpos child elements
+  const ignoreElements = [...document.querySelectorAll('[data-rpos] [data-hveid][data-ved]')]
+
+  // Filter out results that are already blocked
+  results = results.filter(result => {
+    const parentElement = result.parentElement;
+    return parentElement && !(parentElement.matches('#search') || parentElement.hasAttribute('data-rpos')) && !ignoreElements.includes(result);
+  })
 
   if (!results || results.length === 0) return;
 
