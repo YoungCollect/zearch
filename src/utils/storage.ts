@@ -124,8 +124,8 @@ export class StorageManager {
     return {
       regex,
       description: domain.includes('.')
-        ? `${domain} and its subdomains`
-        : `${domain}.* domains and their subdomains`
+        ? `${domain} and subdomains`
+        : `${domain}.* domains and subdomains`
     }
   }
 
